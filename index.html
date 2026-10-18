@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1a20">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VORC">
+<meta name="description" content="画面を見つめたまま、頭とスマホをいっしょに動かす。顔がカメラの真ん中からずれた量を VORC（前庭眼反射の抑制）のエラーとして測り、練習する。Functional Neuro Training。">
+<title>VORC トレーニング｜FNT</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== FNT標準の外まわり（手本：~/FNT-Apps/pinto-8。鼻先あわせ hanasaki-awase と同じ） ===== */
+:root{ --bg0:#0b1a20; --bg1:#123138; --bg2:#16414a; --accent:#7fe0cd; --accent2:#3fa895; --accentInk:#06231d;
+  --ink:#f2faf7; --muted:#a8c6bf; --line:rgba(255,255,255,.12); --card:rgba(255,255,255,.07); --danger:#ffb4a8; --vh:1vh; }
+*{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html,body{ overflow-x:hidden; max-width:100%; }
+html{ height:100%; -webkit-text-size-adjust:100%; background:#0b1a20; }
+body{ font-family:"M PLUS Rounded 1c", system-ui, sans-serif; font-weight:700; color:var(--ink); line-height:1.7;
+  background:radial-gradient(120% 90% at 50% 6%, var(--bg2) 0%, var(--bg1) 44%, var(--bg0) 100%); background-attachment:fixed;
+  min-height:100vh; min-height:100dvh; min-height:calc(var(--vh) * 100);
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+body.playing{ overflow:hidden; touch-action:none; }
+button{ font-family:inherit; font-weight:700; cursor:pointer; border:none; }
+a{ color:var(--accent); }
+:focus-visible{ outline:3px solid var(--accent); outline-offset:3px; border-radius:8px; }
+.hide{ display:none!important; }
+
+#splash{ position:fixed; inset:0; z-index:1000; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px;
+  background:radial-gradient(120% 90% at 50% 20%, var(--bg2) 0%, var(--bg1) 45%, var(--bg0) 100%); transition:opacity .45s ease, visibility .45s ease; }
+#splash.hide{ display:flex!important; opacity:0; visibility:hidden; pointer-events:none; }
+#splash img{ width:132px; height:132px; margin-bottom:22px; border-radius:26px; }
+#splash .fnt{ font-size:13px; letter-spacing:.24em; color:var(--muted); margin-bottom:14px; }
+#splash h1{ font-size:32px; font-weight:800; color:var(--accent); margin-bottom:10px; }
+#splash .lead{ font-size:14px; color:var(--muted); margin-bottom:30px; }
+#splash .tapstart{ min-height:52px; padding:14px 34px; border-radius:16px; font-size:17px; font-weight:800; color:var(--accentInk); background:linear-gradient(180deg,var(--accent),var(--accent2)); animation:breathe 2.4s ease-in-out infinite; }
+#splash .note{ margin-top:22px; font-size:12px; color:var(--muted); }
+#splash .copy{ position:absolute; bottom:calc(20px + env(safe-area-inset-bottom)); font-size:11px; color:var(--muted); }
+@keyframes breathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.05); } }
+
+.app{ width:100%; max-width:480px; margin:0 auto; min-height:100vh; min-height:calc(var(--vh) * 100); display:flex; flex-direction:column; }
+header{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px 4px; }
+.logo{ display:flex; align-items:center; gap:10px; }
+.logo img{ width:34px; height:34px; }
+.logo b{ font-size:16px; font-weight:800; letter-spacing:.02em; }
+.menuBtn{ width:46px; height:46px; border-radius:12px; background:var(--card); color:var(--ink); font-size:22px; display:flex; align-items:center; justify-content:center; }
+.app main{ flex:1; display:flex; flex-direction:column; padding:8px 18px 4px; }
+.screen h2{ font-size:22px; font-weight:800; line-height:1.5; margin:4px 0 8px; }
+.desc{ font-size:14.5px; color:var(--muted); line-height:1.85; }
+.desc b{ color:var(--ink); }
+.loadState{ font-size:13px; color:var(--muted); margin:8px 0 4px; }
+.loadState.err{ color:var(--danger); }
+.card{ margin:14px 0 4px; padding:14px 14px 12px; border-radius:18px; background:var(--card); border:1px solid var(--line); }
+.card h3{ font-size:18px; font-weight:800; color:var(--accent); }
+.card p{ font-size:14px; color:var(--ink); margin:2px 0 6px; }
+.card canvas{ display:block; width:100%; max-width:300px; aspect-ratio:440/340; margin:4px auto 8px; background:#0f1115; border-radius:12px; }
+.opt{ font-size:12.5px; color:var(--muted); margin:8px 0 4px; }
+.chips{ display:flex; gap:6px; }
+.chip{ flex:1; min-height:42px; padding:6px 4px; border-radius:12px; background:rgba(0,0,0,.25); border:1px solid var(--line); color:var(--ink); font-size:14px; }
+.chip.on{ background:var(--accent2); color:var(--accentInk); border-color:var(--accent2); }
+.btn{ width:100%; min-height:54px; padding:14px; border-radius:16px; font-size:17px; font-weight:800; color:var(--accentInk); background:linear-gradient(180deg,var(--accent),var(--accent2)); margin:6px 0; }
+.btn:disabled{ opacity:.4; }
+.btn.ghost{ color:var(--ink); background:transparent; border:1px solid var(--line); }
+.btn:active{ transform:translateY(1px); }
+.notes{ margin:16px 0 8px; padding:12px 14px; border-radius:14px; background:var(--card); border:1px solid var(--line); font-size:12.5px; color:var(--muted); line-height:1.8; }
+footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:center; }
+.fnt-copy{ display:block; font-size:11px; letter-spacing:.14em; color:var(--muted); opacity:.8; }
+/* 結果・記録 */
+.res{ background:rgba(0,0,0,.28); border:1px solid var(--line); border-radius:14px; padding:10px 12px; margin:8px 0; font-size:14px; line-height:1.75; font-weight:500; }
+.res b{ color:#ffd166; }
+.small{ font-size:12.5px; color:#aab; }
+.resHead{ font-size:17px; font-weight:800; color:var(--accent); margin:14px 0 0; }
+.when{ font-size:13px; color:var(--muted); }
+#copyArea{ position:absolute; left:-9999px; width:10px; height:10px; }
+.histItem{ display:block; width:100%; text-align:left; padding:12px 14px; margin:8px 0; border-radius:14px; background:var(--card); border:1px solid var(--line); color:var(--ink); font-size:14.5px; line-height:1.6; }
+.histItem small{ display:block; color:var(--muted); font-size:12.5px; font-weight:500; }
+
+/* サイドメニュー（モーダルでない・オーバーレイ＋スライド） */
+.overlay{ position:fixed; inset:0; background:rgba(0,0,0,.55); opacity:0; visibility:hidden; transition:opacity .3s ease, visibility .3s ease; z-index:80; }
+.overlay.open{ opacity:1; visibility:visible; }
+.side{ position:fixed; top:0; right:0; height:100%; width:min(86%,340px); z-index:90; background:var(--bg1); border-left:1px solid var(--line); transform:translateX(100%);
+  transition:transform .3s ease; display:flex; flex-direction:column; padding:calc(16px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom)); overflow-y:auto; }
+.side.open{ transform:translateX(0); }
+.side .top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.side .top b{ font-size:16px; font-weight:800; }
+.side .closeBtn{ width:44px; height:44px; border-radius:12px; background:var(--card); color:var(--ink); font-size:20px; }
+.side h4{ font-size:12px; letter-spacing:.14em; color:var(--accent); margin:18px 0 8px; }
+.side .guide{ font-size:13px; color:var(--muted); line-height:1.85; font-weight:500; }
+.side .guide ol{ padding-left:20px; }
+.side .guide b{ color:var(--ink); }
+.side .menuLink{ display:block; width:100%; text-align:left; padding:13px 16px; border-radius:14px; background:var(--card); border:1px solid var(--line); color:var(--ink); font-size:15px; }
+.side .toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 16px; border-radius:14px; background:var(--card); border:1px solid var(--line); }
+.side .toggle-row span{ font-size:15px; }
+.switch{ position:relative; width:54px; height:30px; flex:none; }
+.switch input{ position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; }
+.switch .slider{ position:absolute; inset:0; background:var(--line); border-radius:30px; transition:.2s; }
+.switch .slider::before{ content:""; position:absolute; width:24px; height:24px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+.switch input:checked + .slider{ background:var(--accent2); }
+.switch input:checked + .slider::before{ transform:translateX(24px); }
+.side .side-copy{ margin-top:auto; padding-top:22px; font-size:10.5px; letter-spacing:.1em; color:var(--muted); opacity:.7; }
+.toast{ position:fixed; left:50%; bottom:calc(28px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(20px); background:rgba(18,49,56,.98); border:1px solid var(--line); color:var(--ink); font-size:13.5px;
+  padding:12px 18px; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.5); z-index:120; opacity:0; visibility:hidden; transition:opacity .25s ease, transform .25s ease, visibility .25s ease; max-width:88%; text-align:center; }
+.toast.show{ opacity:1; visibility:visible; transform:translateX(-50%) translateY(0); }
+
+/* ===== 測る画面（元：hanasaki-awase の #sMain まわりをそのまま） ===== */
+:where(#sMain) button{ font:inherit; font-size:17px; font-weight:700; border:0; border-radius:12px; padding:14px; width:100%; margin:5px 0; background:#2a6df4; color:#fff; cursor:pointer; }
+:where(#sMain) button.sub{ background:#2b2f38; }
+:where(#sMain) button:disabled{ opacity:.4; }
+#sMain{position:fixed;inset:0;background:#000;overflow:hidden;z-index:50;line-height:1.6;color:#f2f2f2}
+#stage{position:absolute;inset:0}
+#stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform:scaleX(-1);transition:opacity .3s}
+#overlay{position:absolute;inset:0;width:100%;height:100%;transition:opacity .3s}
+#stage.dark video{opacity:.10}#stage.dark #overlay{opacity:0}
+#sMain.dark #top{opacity:.25}
+#top{position:absolute;left:0;right:0;top:0;padding:calc(6px + env(safe-area-inset-top)) 100px 14px 12px;background:linear-gradient(rgba(0,0,0,.65),transparent);z-index:6;pointer-events:none}
+#title{font-size:14px;font-weight:700;color:#cfd3dc}
+.steps{display:flex;gap:3px;margin:0 0 4px}.steps span{flex:1;height:4px;border-radius:2px;background:#2b2f38}.steps span.on{background:#2a6df4}
+#cue{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,520px);text-align:center;font-weight:800;font-size:clamp(23px,6.6vw,34px);line-height:1.45;padding:16px 16px;border-radius:18px;background:rgba(0,0,0,.62);text-shadow:0 2px 8px #000;pointer-events:none;z-index:8}
+#cue:empty{display:none}
+#cue.thin{background:none}
+#cue.top{top:calc(70px + env(safe-area-inset-top));transform:translateX(-50%);padding:8px 12px 12px}
+#cue.fit{font-size:clamp(18px,5.4vw,26px)}
+#cue.fit canvas{width:250px;height:193px}
+#cue small{display:block;font-size:16px;font-weight:600;color:#dfe3ea;margin-top:8px;line-height:1.5}
+#cue canvas{display:block;margin:0 auto 6px;width:220px;height:170px;background:#0f1115;border-radius:12px}
+#cue .ok{display:inline-block;color:#5ad18b;font-size:1.5em}
+#cue .arw{font-size:1.6em;color:#ffcc00}
+#bVoice{position:absolute;right:10px;top:calc(40px + env(safe-area-inset-top));width:auto;margin:0;padding:6px 12px;font-size:14px;border-radius:20px;background:rgba(0,0,0,.6);border:1px solid #556;z-index:10}
+#bQuit{position:absolute;right:10px;top:calc(3px + env(safe-area-inset-top));width:auto;margin:0;padding:3px 12px;font-size:13px;border-radius:20px;background:rgba(0,0,0,.6);border:1px solid #556;z-index:10}
+#bottom{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.75) 30%);z-index:9;max-height:62vh;overflow:auto;display:flex;flex-direction:column}
+#bottom:not(:has(*:not(:empty))){background:none}
+#msg{font-size:12.5px;color:#aab;text-align:center;min-height:0}
+#sMain .res{background:#1b1f27;border:0;border-radius:12px;padding:10px 12px;margin:8px 0;font-size:14px}
+#camFix{position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:60;width:auto;font-size:17px;font-weight:700;border:0;border-radius:12px;padding:14px;color:#fff;background:#e8590c}
+/* 見つめる数字（画面のまん中）と、トレーニングのときのずれの円 */
+#fix{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:#fff;color:#000;font-size:32px;font-weight:800;line-height:56px;text-align:center;display:none;z-index:7;pointer-events:none}
+#hud{position:absolute;left:50%;top:50%;width:220px;height:220px;margin:-110px 0 0 -110px;border-radius:50%;border:5px solid #5ad18b;display:none;z-index:6;pointer-events:none;transition:border-color .15s}
+#hud .zone{position:absolute;left:50%;top:50%;border-radius:50%;border:2px dashed rgba(255,255,255,.35);transform:translate(-50%,-50%)}
+#hud .d{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:#5ad18b;box-shadow:0 0 10px rgba(0,0,0,.6)}
+#hudNum{position:absolute;left:50%;top:calc(50% + 124px);transform:translateX(-50%);font-size:24px;font-weight:800;white-space:nowrap;display:none;z-index:6;pointer-events:none;text-shadow:0 2px 6px #000}
+</style>
+</head>
+<body>
+
+<div id="splash" role="dialog" aria-label="VORC トレーニングを開始">
+  <img src="FNT512.png" alt="FNT ロゴ">
+  <div class="fnt">FUNCTIONAL NEURO TRAINING</div>
+  <h1>VORC トレーニング</h1>
+  <p class="lead">画面を見つめたまま、頭とスマホをいっしょに。</p>
+  <button class="tapstart" id="tapStart">タップで開始</button>
+  <p class="note">🔊 音声と音で案内します（メニューでオフにできます）</p>
+  <div class="copy">© Functional Neuro Training</div>
+</div>
+
+<div class="app" id="app">
+  <header>
+    <div class="logo"><img src="FNT512-transparent.png" alt=""><b>VORC トレーニング</b></div>
+    <button class="menuBtn" id="menuBtn" aria-label="メニューを開く" aria-haspopup="true">☰</button>
+  </header>
+  <main>
+    <section class="screen" id="sHome">
+      <h2>画面を見つめたまま、<br>頭とスマホをいっしょに動かす</h2>
+      <p class="desc">スマホを顔の前に持ち、<b>画面のまん中の数字</b>を見たまま、頭とスマホを<b>いっしょに</b>右・左・上・下・斜めへ動かします。顔がカメラの真ん中からずれた分を、<b>VORC（頭が動いても目を画面に残す働き）のエラー</b>として測ります。</p>
+      <p class="loadState" id="loadState">読み込み中…</p>
+      <canvas width="440" height="340" id="homeDemo" style="display:block;width:100%;max-width:300px;aspect-ratio:440/340;margin:6px auto 0;background:#0f1115;border-radius:12px"></canvas>
+      <div class="card">
+        <h3>トレーニング</h3>
+        <p>動かしている間、どれくらいずれているかを<b>円の中の点</b>と数字で見ながら練習します</p>
+        <div class="opt">向き</div>
+        <div class="chips" data-cfg="set"><button class="chip" data-v="lr">左右</button><button class="chip" data-v="ud">上下</button><button class="chip" data-v="diag">斜め</button><button class="chip" data-v="all">全部</button></div>
+        <div class="opt">速さ（1往復）</div>
+        <div class="chips" data-cfg="speed"><button class="chip" data-v="slow">ゆっくり 3秒</button><button class="chip" data-v="mid">ふつう 2秒</button><button class="chip" data-v="fast">はやい 1.2秒</button></div>
+        <button class="btn" data-mode="train" disabled style="margin-top:12px">トレーニングを始める</button>
+      </div>
+      <div class="card">
+        <h3>テスト</h3>
+        <p>8つの向きを3往復ずつ（ふつうの速さ）。途中は何も出さず、<b>終わってから</b>どの向きにどれくらいずれたかを出します</p>
+        <button class="btn" data-mode="test" disabled>テストを始める</button>
+      </div>
+      <div class="notes">
+        ・映像は端末の外へ送りません（端末の中で数字にするだけです）。<br>
+        ・医療の検査ではありません。めまい・気分の悪さ・首の痛みが出たら、すぐにやめてください。<br>
+        ・明るい所で、顔全体が映るようにしてください。首は楽に向けられる所までで十分です。
+      </div>
+    </section>
+
+    <section class="screen hide" id="sEnd">
+      <h2 id="endHead">結果</h2>
+      <p class="when" id="endWhen"></p>
+      <div id="endList"></div>
+      <button class="btn" id="bCopy">記録をテキストでコピー</button>
+      <button class="btn ghost" id="bAgain">もう一度</button>
+      <button class="btn ghost" id="bHome">トップに戻る</button>
+      <textarea id="copyArea" readonly aria-hidden="true"></textarea>
+    </section>
+
+    <section class="screen hide" id="sHist">
+      <h2>これまでの記録</h2>
+      <p class="desc">この端末に残っている記録です（新しい順・最新30件）。押すと結果を開きます。</p>
+      <div id="histList"></div>
+      <button class="btn ghost" id="bHistCopy">全部の記録をテキストでコピー</button>
+      <button class="btn ghost" id="bHistHome">トップに戻る</button>
+    </section>
+  </main>
+  <footer><span class="fnt-copy">© Functional Neuro Training</span></footer>
+</div>
+
+<div class="overlay" id="menuOverlay"></div>
+<nav class="side" id="side" aria-label="メニュー" aria-hidden="true">
+  <div class="top"><b>メニュー</b><button class="closeBtn" id="closeMenu" aria-label="メニューを閉じる">×</button></div>
+  <h4>使い方</h4>
+  <div class="guide"><ol>
+    <li>スマホを<b>顔の前</b>に持つ（顔全体が映る距離・腕は軽く曲げる）</li>
+    <li>目は<b>画面のまん中の数字</b>から離さない</li>
+    <li>「みぎ」などの声のあと、音に合わせて<b>頭とスマホをいっしょに</b>往復（<b>高い音＝真ん中・低い音＝向けた先</b>）</li>
+    <li>顔がカメラの真ん中から動かないように。スマホだけ・頭だけが先に行くと「ずれ」になります</li>
+  </ol><p style="margin-top:6px">トレーニングでは、円の中の点が<b>数字の後ろに隠れていれば</b>ずれていません。円の色は 緑＝3°未満・黄＝6°未満・赤＝それ以上（仮の線引き）。</p></div>
+  <h4>記録</h4>
+  <button class="menuLink" id="mHist">これまでの記録</button>
+  <h4>音声</h4>
+  <div class="toggle-row"><span>音声の案内</span><label class="switch"><input type="checkbox" id="voiceToggle" aria-label="音声の案内のオンオフ"><span class="slider"></span></label></div>
+  <h4>ホーム画面に追加する</h4>
+  <div class="guide">
+    <b>iPhone（Safari）</b><ol><li>下の共有ボタン（□から↑のマーク）を押す</li><li>「ホーム画面に追加」を選ぶ</li></ol>
+    <b>Android（Chrome）</b><ol><li>右上の「︙」を押す</li><li>「ホーム画面に追加」または「アプリをインストール」を選ぶ</li></ol>
+    <p style="margin-top:6px">追加しなくても、このページのままで全部使えます。</p>
+  </div>
+  <div class="side-copy">© Functional Neuro Training</div>
+</nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div id="sMain" class="hide">
+  <div id="stage">
+    <video id="video" playsinline muted autoplay></video>
+    <canvas id="overlay"></canvas>
+  </div>
+  <div id="hud"><div class="zone" id="hudZone"></div><div class="d" id="hudDot"></div></div>
+  <div id="fix">5</div>
+  <div id="hudNum"></div>
+  <div id="top"><div class="steps" id="steps"></div><div id="title"></div></div>
+  <div id="cue"></div>
+  <button id="bVoice"></button>
+  <button id="bQuit">✕ やめる</button>
+  <div id="bottom"><div id="result"></div><div id="btns"></div><div id="msg"></div></div>
+</div>
+
+<script type="module">
+// VORC トレーニング（2026-10-18 宮崎さん「画面を注視したまま頭を右・左・上・下・斜めに向ける VORC のアセスメント・テスト・トレーニングアプリ。
+// 手に持ったスマホと頭を同時に動かして、顔がカメラからずれないようにし、ずれることを VORC のエラーとして捉える」）。
+// カメラ・顔の点・音声・位置合わせの部品は ~/FNT-Apps/hanasaki-awase/index.html（元は fnt-camera-check）をそのまま写してある
+import { FilesetResolver, FaceLandmarker } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.0/vision_bundle.mjs';
+const WASM = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.0/wasm';
+const MODEL = 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
+
+const $ = id => document.getElementById(id);
+const video = $('video'), ov = $('overlay'), oc = ov.getContext('2d');
+let lm = null, last = null, lastBs = null, lastHp = null, lastT = -1, rec = null;   // last = 直近の顔の点（画素）・lastHp = 頭の向き
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+// 試し用の入口：?test=1 のときだけ、頭の向きを外から差し替えられる（作り物のカメラで最後まで通すため）。ふだんは何もしない
+const TEST = /[?&]test=1(&|$)/.test(location.search);
+let RUN = {};
+const newRun = mode => { RUN = { v: 1, app: 'vorc-trainer', mode, started: new Date().toISOString(), ua: navigator.userAgent }; };
+
+// ── 顔の点の番号（右・左は本人から見た向き。起動後に実際の位置で確かめて入れ替える）
+let P = { eyeOut: [33, 263], cheek: [234, 454] };
+let sideChecked = false;
+let delegate = '', toCPU = async () => {}, switching = false, gpuMiss = 0;
+// 目の向きの値（参考として記録だけする。画面に出さない）
+const BSN = ['eyeLookInLeft', 'eyeLookOutLeft', 'eyeLookUpLeft', 'eyeLookDownLeft', 'eyeLookInRight', 'eyeLookOutRight', 'eyeLookUpRight', 'eyeLookDownRight'];
+
+async function load() {
+  const fs = await FilesetResolver.forVisionTasks(WASM);
+  const opt = d => ({ baseOptions: { modelAssetPath: MODEL, delegate: d }, runningMode: 'VIDEO', numFaces: 1, outputFaceBlendshapes: true, outputFacialTransformationMatrixes: true });
+  try { lm = await FaceLandmarker.createFromOptions(fs, opt('GPU')); delegate = 'GPU'; }
+  catch (e) { lm = await FaceLandmarker.createFromOptions(fs, opt('CPU')); delegate = 'CPU'; }
+  toCPU = async () => { if (delegate === 'CPU' || switching) return; switching = true; try { lm = await FaceLandmarker.createFromOptions(fs, opt('CPU')); delegate = 'CPU'; } finally { switching = false; } };
+  $('loadState').textContent = '準備ができました。';
+  document.querySelectorAll('[data-mode]').forEach(b => { b.disabled = false; });
+}
+load().catch(e => { $('loadState').textContent = '読み込みに失敗しました：' + e.message + '（電波のよい所で、ページを読み込み直してください）'; $('loadState').classList.add('err'); window.__loadError = e.message; });
+
+// ── 計算の道具
+function px(l) { return { x: l.x * video.videoWidth, y: l.y * video.videoHeight }; }
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : NaN;
+const med = a => { if (!a.length) return NaN; const v = [...a].sort((x, y) => x - y), n = v.length >> 1; return v.length % 2 ? v[n] : (v[n - 1] + v[n]) / 2; };
+const qtl = (a, q) => { if (!a.length) return NaN; const v = [...a].sort((x, y) => x - y); return v[Math.min(v.length - 1, Math.floor(q * v.length))]; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const f2 = v => Number.isFinite(v) ? (Math.round(v * 100) / 100).toFixed(2) : '—';
+const r3 = v => Number.isFinite(v) ? Math.round(v * 1000) / 1000 : null;
+const r1 = v => Number.isFinite(v) ? Math.round(v * 10) / 10 : null;
+const r0 = v => Number.isFinite(v) ? Math.round(v) : null;
+// 目の線を水平に回して、目の間の長さを1にした座標（位置合わせで使う。元のまま）
+function frame(pts, E = P.eyeOut) {
+  const a = pts[E[0]], b = pts[E[1]];
+  const c = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, d = dist(a, b);
+  let ang = Math.atan2(b.y - a.y, b.x - a.x);
+  if (ang > Math.PI / 2) ang -= Math.PI; else if (ang < -Math.PI / 2) ang += Math.PI;
+  const cs = Math.cos(-ang), sn = Math.sin(-ang);
+  const f = p => { const x = p.x - c.x, y = p.y - c.y; return { x: (x * cs - y * sn) / d, y: (x * sn + y * cs) / d }; };
+  return { f, d, ang, c };
+}
+
+// ── スマホの回転（ジャイロ）。頭とスマホをどれだけ動かしたかを測る（顔がカメラに対して動かないのが正解なので、カメラだけでは「動かしていない」と区別できない）
+// 向き（符号）は端末で違うことがあるので使わず、大きさだけを使う。iPhone は押したボタンの中で許可を取る
+let GY = { on: false, t: 0, x: 0, y: 0, rate: 0, n: 0 };
+async function motionStart() {
+  if (GY.on) return true;
+  try { if (typeof DeviceMotionEvent === 'undefined') return false; if (typeof DeviceMotionEvent.requestPermission === 'function' && (await DeviceMotionEvent.requestPermission()) !== 'granted') return false; } catch (e) { return false; }
+  addEventListener('devicemotion', e => {
+    const r = e.rotationRate; if (!r || !Number.isFinite(r.beta) || !Number.isFinite(r.gamma)) return;
+    const now = performance.now();
+    if (GY.t) { const dt = Math.min(0.1, (now - GY.t) / 1000); GY.x += r.beta * dt; GY.y += r.gamma * dt; }   // beta＝画面の横の軸（上下に向ける）・gamma＝縦の軸（左右に向ける）。度/秒
+    GY.t = now; GY.rate = Math.hypot(r.beta, r.gamma); GY.n++;
+  });
+  GY.on = true; return true;
+}
+const gyroLive = () => GY.on && GY.n > 0 && performance.now() - GY.t < 500;
+
+// ── カメラ（元のまま）
+let camWanted = false, camErr = '';
+async function startCam() {
+  camWanted = true;
+  if (video.srcObject) { video.srcObject.getTracks().forEach(t => t.stop()); video.srcObject = null; }
+  const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 60 } }, audio: false });
+  video.srcObject = s;
+  await video.play();
+  s.getVideoTracks()[0].addEventListener('ended', () => reviveCam('ended'));
+  wake();
+  RUN.cam = { w: video.videoWidth, h: video.videoHeight, screen: [innerWidth, innerHeight, window.devicePixelRatio || 1], fpsSetting: s.getVideoTracks()[0]?.getSettings?.().frameRate || null };
+  if (!looping) { looping = true; loop(); }
+}
+let looping = false, reviving = false, stillSince = 0, wl = null;
+async function wake() { try { if (navigator.wakeLock && !wl) { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); } } catch (e) {} }
+const camOK = () => { const t = video.srcObject && video.srcObject.getVideoTracks()[0]; return !!(t && t.readyState === 'live' && !t.muted); };
+function camFixBtn(show) {
+  let b = $('camFix');
+  if (!show) { if (b) b.remove(); return; }
+  if (!b) { b = document.createElement('button'); b.id = 'camFix'; document.body.appendChild(b);
+    b.onclick = async () => { b.disabled = true; b.textContent = 'カメラをつけています…'; try { await startCam(); camErr = ''; camFixBtn(false); } catch (e) { camErr = e.name || String(e); camFixBtn(true); } }; }
+  b.disabled = false; b.textContent = 'カメラが止まりました。ここを押してつけ直す' + (camErr ? `（${camErr}）` : '');
+}
+async function reviveCam(why) {
+  if (reviving || !camWanted || document.hidden) return;
+  reviving = true; window.__revive = (window.__revive || 0) + 1; window.__reviveWhy = why;
+  let ok = false;
+  for (let i = 0; i < 3 && !ok; i++) { try { await startCam(); camErr = ''; ok = true; } catch (e) { camErr = e.name || String(e); await sleep(1000); } }
+  camFixBtn(!ok);
+  stillSince = 0; reviving = false;
+}
+// 画面を離れたらカメラを手放し、戻ったら開き直す。公開中の版が新しくなっていて、測っている最中でなければ読み込み直す（元のまま）
+let srcSig = null;
+const pageSig = async () => { try { const t = await (await fetch(location.pathname + '?sig=' + Date.now(), { cache: 'no-store' })).text(); let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return h; } catch (e) { return null; } };
+const idle = () => $('sMain').classList.contains('hide');
+pageSig().then(h => { srcSig = h; });
+async function checkUpdate() { const h = await pageSig(); if (h != null && srcSig != null && h !== srcSig && idle()) location.reload(); }
+function releaseCam() { if (video.srcObject) { video.srcObject.getTracks().forEach(t => t.stop()); video.srcObject = null; } stillSince = 0; }
+addEventListener('pagehide', releaseCam);
+addEventListener('pageshow', e => { if (e.persisted) { checkUpdate(); if (camWanted) reviveCam('pageshow'); } });
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden) { releaseCam(); return; }
+  checkUpdate();
+  if (!camWanted) return;
+  wake(); await sleep(400);
+  if (!camOK()) reviveCam('back'); else video.play().catch(() => reviveCam('play'));
+});
+let OVU = 1;
+const detC = document.createElement('canvas'), detX = detC.getContext('2d');
+function frameCanvas() {
+  const w = video.videoWidth, h = video.videoHeight;
+  if (detC.width !== w || detC.height !== h) { detC.width = w; detC.height = h; }
+  detX.drawImage(video, 0, 0, w, h);
+  return detC;
+}
+function fitOverlay() {
+  const W = ov.clientWidth, H = ov.clientHeight, r = window.devicePixelRatio || 1, vw = video.videoWidth, vh = video.videoHeight;
+  const cw = Math.round(W * r), ch = Math.round(H * r);
+  if (ov.width !== cw || ov.height !== ch) { ov.width = cw; ov.height = ch; }
+  oc.setTransform(1, 0, 0, 1, 0, 0); oc.clearRect(0, 0, cw, ch);
+  if (!vw || !vh || !W || !H) return;
+  const k = Math.min(W / vw, H / vh), ox = (W - vw * k) / 2, oy = (H - vh * k) / 2;
+  oc.setTransform(-k * r, 0, 0, k * r, (ox + vw * k) * r, oy * r);
+  OVU = 1 / k;
+}
+// 目の向きの値（参考）：よこ・たて。左右の目の平均
+function gazeOf(bs) {
+  if (!bs) return null; const g = k => bs[k] || 0;
+  return { x: ((g('eyeLookOutRight') - g('eyeLookInRight')) - (g('eyeLookOutLeft') - g('eyeLookInLeft'))) / 2, y: ((g('eyeLookUpLeft') + g('eyeLookUpRight')) - (g('eyeLookDownLeft') + g('eyeLookDownRight'))) / 2 };
+}
+function loop() {
+  if (video.readyState >= 2 && video.currentTime !== lastT) {
+    lastT = video.currentTime;
+    const t = performance.now();
+    let r = null;
+    if (!switching) { try { r = lm.detectForVideo(frameCanvas(), t); } catch (e) { window.__detErr = e.message; toCPU(); } }
+    const got = !!(r && r.faceLandmarks && r.faceLandmarks[0]);
+    gpuMiss = got ? 0 : gpuMiss + 1;
+    if (delegate === 'GPU' && gpuMiss > 45) toCPU();
+    fitOverlay();
+    if (got) {
+      const pts = r.faceLandmarks[0].map(px);
+      if (!sideChecked) { if (pts[33].x > pts[263].x) for (const k in P) P[k] = [P[k][1], P[k][0]]; sideChecked = true; }
+      let bs = null;
+      const cat = r.faceBlendshapes && r.faceBlendshapes[0] && r.faceBlendshapes[0].categories;
+      if (cat) { bs = {}; for (const c of cat) if (BSN.includes(c.categoryName)) bs[c.categoryName] = c.score; }
+      // 頭から見たカメラの向き（頭の回旋・上下。元の fnt-camera-check と同じ取り方）。＋回旋＝本人の右へ、＋上下＝上を向く。
+      // スマホ（カメラ）と頭がいっしょに動いていれば、この値は動かない。動いた分が「ずれ」
+      let hp = null; const M = r.facialTransformationMatrixes && r.facialTransformationMatrixes[0];
+      if (M && M.data) { const m = M.data; hp = { rot: Math.atan2(m[2], m[10]) * 180 / Math.PI, up: -Math.atan2(m[6], m[10]) * 180 / Math.PI }; }
+      if (TEST && window.__hpFake) hp = window.__hpFake(t, hp);   // 試し用（?test=1 のときだけ）
+      last = pts; lastBs = bs; lastHp = hp;
+      if (rec) { const d = dist(pts[P.eyeOut[0]], pts[P.eyeOut[1]]); rec.push({ t, hp, n: { x: pts[1].x / d, y: pts[1].y / d }, gz: gazeOf(bs), gy: gyroLive() ? { x: GY.x, y: GY.y, r: GY.rate } : null }); }
+      if (!SETON) {   // 測っている間は顔の点を描かない（目を数字から離さないように）
+        const u = OVU; oc.fillStyle = 'rgba(90,209,139,.9)';
+        for (let i = 0; i < pts.length; i += 2) oc.fillRect(pts[i].x - 1.3 * u, pts[i].y - 1.3 * u, 2.6 * u, 2.6 * u);
+      }
+    } else { last = null; lastBs = null; lastHp = null; if (rec) rec.push({ t, miss: true, gy: gyroLive() ? { x: GY.x, y: GY.y, r: GY.rate } : null }); }
+    if (LIVE) drawLive();
+    window.__frames = (window.__frames || 0) + 1;
+    window.__faceSeen = (window.__faceSeen || 0) + (last ? 1 : 0);
+  }
+  const tr = video.srcObject && !document.hidden && video.srcObject.getVideoTracks()[0];
+  if (tr && (tr.readyState === 'ended' || tr.muted || video.paused || video.readyState < 2)) {
+    const now = performance.now(); if (!stillSince) stillSince = now;
+    if (now - stillSince > 2000) reviveCam(tr.readyState === 'ended' ? 'ended' : tr.muted ? 'muted' : 'still');
+  } else if (tr) stillSince = 0;
+  requestAnimationFrame(loop);
+}
+const bc = document.createElement('canvas'), bx = bc.getContext('2d', { willReadFrequently: true });
+function brightness() {
+  bc.width = 32; bc.height = 24; bx.drawImage(video, 0, 0, 32, 24);
+  const d = bx.getImageData(8, 4, 16, 16).data; let s = 0;
+  for (let i = 0; i < d.length; i += 4) s += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+  return s / (d.length / 4);
+}
+
+// ── 画面の部品
+let tok = 0;
+function show(i, n, title) {
+  tok++;
+  if ($('steps').children.length !== n) $('steps').innerHTML = '<span></span>'.repeat(n);
+  [...$('steps').children].forEach((e, j) => e.classList.toggle('on', j <= i));
+  $('title').textContent = title;
+  $('result').innerHTML = ''; $('btns').innerHTML = ''; $('msg').textContent = ''; cue('');
+  dark(false); fixOn(false); hudOn(false); SETON = false; LIVE = null; rec = null;
+  return tok;
+}
+function setStep(i) { [...$('steps').children].forEach((e, j) => e.classList.toggle('on', j <= i)); }
+// 指示は画面の真ん中に太く大きく出す（元の 2026-10-14 宮崎さん）
+function cue(html, cls = '', voice) { const c = $('cue'); c.className = cls; c.innerHTML = html; say(voice ?? html); }
+// ── 音声の指示（元のまま）。ElevenLabs で前もって作った音声（voice/）を流す。無い文だけ端末の声で読む。文を足したら tools/voice_build.py を走らせる
+const VOICE_KEY = 'vorcVoice';
+let VOICE = localStorage.getItem(VOICE_KEY) !== 'off', said = '', jaV = null;
+const VA = new Audio(); let VMAP = null;
+const vkey = t => t.replace(/[\s。]/g, '');
+fetch('voice/index.json', { cache: 'no-cache' }).then(r => r.json()).then(m => { VMAP = m; }).catch(() => {});
+const toSpeech = html => { const d = document.createElement('div'); d.innerHTML = String(html).replace(/<br\s*\/?>/g, '。').replace(/<small>/g, '。'); d.querySelectorAll('button, canvas, .arw').forEach(b => b.remove());
+  return d.textContent.replace(/／/g, '、').replace(/\s+/g, ' ').replace(/。+/g, '。').replace(/^。|。$/g, '').trim(); };
+function say(html) {
+  const t = html ? toSpeech(html) : '';
+  if (!t || t === said) return;
+  said = t;
+  if (!VOICE) return;
+  const f = VMAP && VMAP[vkey(t)];
+  if (f) { try { speechSynthesis.cancel(); } catch (e) {} vplay('voice/' + f); return; }
+  if (VMAP) { (window.__voiceMiss = window.__voiceMiss || []).push(t); console.log('[voice] 音声ファイルなし：' + t); }
+  if (!window.speechSynthesis) return;
+  VA.pause();
+  try { speechSynthesis.cancel(); const x = new SpeechSynthesisUtterance(t); x.lang = 'ja-JP'; x.rate = 1.1;
+    jaV = jaV || speechSynthesis.getVoices().find(v => /^ja/i.test(v.lang)); if (jaV) x.voice = jaV; speechSynthesis.speak(x); } catch (e) {}
+}
+async function voiceQuiet(max = 9000) { const my = tok, t0 = performance.now(); await sleep(150);
+  while (my === tok && VOICE && performance.now() - t0 < max && ((!VA.paused && !VA.ended) || (window.speechSynthesis && speechSynthesis.speaking))) await sleep(100); }
+let vPend = null;
+function vplay(src) {
+  vPend = null; VA.pause(); VA.muted = false; VA.src = src;
+  VA.play().catch(e => { if (e && e.name === 'NotAllowedError') vPend = src; });
+}
+const vTap = () => {
+  try { if (AC.a && AC.a.state !== 'running') AC.a.resume(); } catch (e) {}
+  if (vPend && VOICE) { const s = vPend; vPend = null; VA.src = s; VA.play().catch(() => {}); }
+};
+['pointerdown', 'touchend', 'click'].forEach(k => addEventListener(k, vTap, true));
+function voiceBtn() { $('bVoice').textContent = VOICE ? '🔊 音声オン' : '🔇 音声オフ'; }
+$('bVoice').onclick = () => { VOICE = !VOICE; localStorage.setItem(VOICE_KEY, VOICE ? 'on' : 'off'); voiceBtn(); if (!VOICE) { try { speechSynthesis.cancel(); } catch (e) {} VA.pause(); } };
+voiceBtn(); try { speechSynthesis.onvoiceschanged = () => { jaV = null; }; } catch (e) {}
+function dark(on) { $('stage').classList.toggle('dark', on); $('sMain').classList.toggle('dark', on); }
+function btn(label, fn, cls = '') { const b = document.createElement('button'); b.textContent = label; b.className = cls; b.onclick = fn; $('btns').appendChild(b); return b; }
+const clearBtns = () => { $('btns').innerHTML = ''; $('result').innerHTML = ''; };
+function fail(again, why) {
+  cue(`${why}<small>顔を画面に入れて、もう一度どうぞ</small>`);
+  $('result').innerHTML = `<div class="res"><span class="small">確かめ用：顔の点の読み取り ${delegate}・${window.__faceSeen || 0}／${window.__frames || 0}コマ${window.__detErr ? '・' + window.__detErr : ''}</span></div>`;
+  btn('もう一度', again);
+}
+// 音（メトロノーム）。音はボタンを押したときに用意しないと鳴らない端末がある
+const AC = { a: null };
+function audioStart() { try { const A = window.AudioContext || window.webkitAudioContext; AC.a = AC.a || new A(); AC.a.resume(); } catch (e) {} }
+function beep(f = 880, ms = 90, vol = 0.22) {
+  try { const a = AC.a; if (!a) return; const o = a.createOscillator(), g = a.createGain();
+    o.frequency.value = f; g.gain.value = vol; o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime + ms / 1000); } catch (e) {}
+}
+function endBeep() { try { navigator.vibrate && navigator.vibrate([200, 80, 200]); } catch (e) {} beep(1000, 250, 0.25); }
+
+// ── 向き。右・左は画面を見ている本人の右・左。DV：x ＋＝右、y ＋＝上
+const DIRS = ['R', 'UR', 'U', 'UL', 'L', 'DL', 'D', 'DR'];
+const DJ = { R: '右', UR: '右上', U: '上', UL: '左上', L: '左', DL: '左下', D: '下', DR: '右下' };
+const DV = { R: [1, 0], UR: [1, 1], U: [0, 1], UL: [-1, 1], L: [-1, 0], DL: [-1, -1], D: [0, -1], DR: [1, -1] };
+const ARW = { R: '→', UR: '↗', U: '↑', UL: '↖', L: '←', DL: '↙', D: '↓', DR: '↘' };
+const dirOf = (x, y) => DIRS[((Math.round(Math.atan2(y, x) * 180 / Math.PI / 45) % 8) + 8) % 8];
+const unitV = k => { const [u, v] = DV[k], n = Math.hypot(u, v); return [u / n, v / n]; };
+
+// ════ 決まり（しきい値はすべて仮。宮崎さんが決めたら書き換える）
+const VC = { ok: 3, warn: 6, range: 10 };   // 度：緑＝ok 未満・黄＝warn 未満・赤＝それ以上。range＝トレーニングの円の端
+const SPEEDS = { slow: [3.0, 'ゆっくり'], mid: [2.0, 'ふつう'], fast: [1.2, 'はやい'] };   // 1往復の秒
+const SETS = { lr: ['R', 'L'], ud: ['U', 'D'], diag: ['UR', 'DL', 'UL', 'DR'], all: ['R', 'L', 'U', 'D', 'UR', 'DL', 'UL', 'DR'] };
+const SETN = { lr: '左右', ud: '上下', diag: '斜め', all: '全部' };
+const TEST_DIRS = SETS.all, TEST_REPS = 3, TEST_SPEED = 'mid', TRAIN_REPS = 5;
+const MOVE_MIN = 8;   // 度：ジャイロで測った1往復の動きがこれより小さければ「動きが小さい」と出す（仮）
+
+// ════ トレーニングの円（ずれをその場で見せる）
+// 円のまん中＝ずれていない。点は「スマホから見て頭がどちらへずれているか」（本人の右へずれた＝点が右）。点が数字の後ろに隠れていればOK
+let LIVE = null, SETON = false;
+function fixOn(on) { $('fix').style.display = on ? 'block' : 'none'; }
+function hudOn(on) { $('hud').style.display = on ? 'block' : 'none'; $('hudNum').style.display = on ? 'block' : 'none';
+  const z = $('hudZone'), s = 220 * VC.ok / VC.range; z.style.width = z.style.height = s + 'px'; }
+const colOf = m => m < VC.ok ? '#5ad18b' : m < VC.warn ? '#ffd166' : '#ff6b5a';
+function drawLive() {
+  const L = LIVE, hud = $('hud'), dot = $('hudDot'), num = $('hudNum');
+  if (!L.base) return;   // 楽にしたときの向きを取っている間は何も出さない
+  if (!lastHp) { L.miss = (L.miss || 0) + 1; if (L.miss > 6) { hud.style.borderColor = '#ff6b5a'; dot.style.display = 'none'; num.textContent = '顔が外れています'; num.style.color = '#ff6b5a'; } return; }
+  L.miss = 0; dot.style.display = '';
+  const dR = lastHp.rot - L.base.rot, dU = lastHp.up - L.base.up;
+  L.sx = L.sx == null ? dR : L.sx * 0.5 + dR * 0.5; L.sy = L.sy == null ? dU : L.sy * 0.5 + dU * 0.5;   // 読み取りの細かい揺れをならす
+  const m = Math.hypot(L.sx, L.sy), k = Math.min(1, VC.range / Math.max(m, 1e-6)), R = 110 - 13;
+  const x = L.sx * k / VC.range * R, y = -L.sy * k / VC.range * R, c = colOf(m);
+  dot.style.transform = `translate(${x}px,${y}px)`; dot.style.background = c; hud.style.borderColor = c;
+  num.textContent = `ずれ ${m.toFixed(1)}°`; num.style.color = c;
+}
+// 見つめる数字は1.5秒ごとに変える（目を本当に数字に置いておくため）
+let fixTimer = null;
+function fixRoll(on) { clearInterval(fixTimer); if (!on) return; let p = 5; fixTimer = setInterval(() => { let n; do n = 1 + Math.floor(Math.random() * 9); while (n === p); p = n; $('fix').textContent = n; }, 1500); }
+
+// ════ 0. 位置合わせ（元のまま。顔が映っているか・距離・向き・明るさ）
+async function stepAlign(next, nextLabel) {
+  const my = show(0, NSTEP, '最初に：顔の位置を合わせる');
+  const b = btn(nextLabel, next); b.disabled = true;
+  const skip = btn('このまま進む', next, 'sub'); skip.style.display = 'none';
+  const t0 = performance.now();
+  let okCount = 0, unlocked = false;
+  while (my === tok) {
+    const items = [];
+    if (!last) items.push(['顔が見つかりません。カメラに顔を向けてください', false]);
+    else {
+      const { d, f, ang } = frame(last), w = video.videoWidth;
+      const nose = last[1], cl = last[P.cheek[0]], cr = last[P.cheek[1]];
+      const yaw = (f(nose).x - f(cl).x) / (f(cr).x - f(cl).x);
+      const roll = Math.abs(ang * 180 / Math.PI), size = d / w;
+      items.push([size < 0.10 ? 'もう少し近づいて' : size > 0.50 ? 'もう少し離れて' : '距離：ちょうどいい', size >= 0.10 && size <= 0.50]);
+      const yOk = Math.abs(yaw - 0.5) <= 0.12, rOk = roll <= 12;
+      items.push([yOk && rOk ? '向き：まっすぐ' : !yOk ? '顔をまっすぐ正面に' : '首のかしげをまっすぐに', yOk && rOk]);
+      const br = brightness();
+      items.push([br < 45 ? '暗いです。明るい所へ' : '明るさ：OK', br >= 45]);
+    }
+    const all = items.length === 3 && items.every(i => i[1]);
+    okCount = all ? okCount + 1 : Math.max(0, okCount - 1);
+    if (okCount >= 5) unlocked = true;
+    b.disabled = !unlocked;
+    skip.style.display = !unlocked && last && performance.now() - t0 > 5000 ? '' : 'none';
+    const head = all || unlocked ? '<span class="ok">OK ✓</span><br>下の「次へ」を押してください' : '顔の位置を合わせます';
+    cue(`${head}<small>${items.map(([t, ok]) => `<span style="color:${ok ? '#5ad18b' : '#ff8a65'}">${ok ? '●' : '○'} ${t}</span>`).join('<br>')}</small>`, '', all || unlocked ? 'OK。下の「次へ」を押してください' : '顔の位置を合わせます。' + items.filter(i => !i[1]).map(i => i[0]).join('。'));
+    await sleep(150);
+  }
+}
+
+// ════ 見本の動き（トップと始める前）。スマホの枠の中の顔が、頭とスマホが同じだけ動けば真ん中に残る。3回目は頭だけ先に行って、顔が枠からずれる（＝ずれ）
+function demoVorc(c) {
+  if (!c) return; const x = c.getContext('2d'), t0 = performance.now(), my = tok;
+  const W = 440, H = 340, cx = 220, cy = 186;
+  const ez = q => { q = clamp(q, 0, 1); return q * q * (3 - 2 * q); };
+  const seq = ['R', 'L', 'U', 'R'], per = 2600;
+  (function fr() {
+    if (!document.body.contains(c) || my !== tok) return;
+    const e = performance.now() - t0, i = Math.floor(e / per) % seq.length, k = seq[i], f = (e % per) / per, bad = i === seq.length - 1;
+    const s = f < 0.5 ? ez(f * 2) : ez(2 - f * 2), [u, v] = DV[k], A = 70;
+    const ph = { x: cx + u * A * s, y: cy - v * A * 0.75 * s };   // スマホの位置
+    const lag = bad ? Math.sin(f * Math.PI * 2) * 0.45 : 0;        // 悪い見本：頭が先に行って戻る
+    const hd = { x: cx + u * A * (s + lag), y: cy - v * A * 0.75 * (s + lag) };
+    x.clearRect(0, 0, W, H); x.lineCap = x.lineJoin = 'round';
+    // 頭（後ろの大きい輪郭）
+    x.strokeStyle = 'rgba(207,214,228,.35)'; x.lineWidth = 3; x.beginPath(); x.ellipse(hd.x, hd.y, 74, 92, 0, 0, 7); x.stroke();
+    // スマホの枠
+    x.strokeStyle = '#cfd6e4'; x.lineWidth = 4; x.fillStyle = '#0b0d12';
+    const pw = 120, phh = 190; x.beginPath(); x.roundRect ? x.roundRect(ph.x - pw / 2, ph.y - phh / 2, pw, phh, 16) : x.rect(ph.x - pw / 2, ph.y - phh / 2, pw, phh); x.fill(); x.stroke();
+    // 画面に映る顔（頭とスマホの差だけ動く）
+    const dx = (hd.x - ph.x) * 0.9, dy = (hd.y - ph.y) * 0.9, fx = ph.x + dx, fy = ph.y + dy + 6, m = Math.hypot(dx, dy), col = m < 6 ? '#5ad18b' : '#ff6b5a';
+    x.save(); x.beginPath(); x.rect(ph.x - pw / 2 + 4, ph.y - phh / 2 + 4, pw - 8, phh - 8); x.clip();
+    x.strokeStyle = col; x.lineWidth = 3; x.beginPath(); x.ellipse(fx, fy, 30, 38, 0, 0, 7); x.stroke();
+    for (const sg of [-1, 1]) { x.beginPath(); x.arc(fx + sg * 11 + dx * 0.15, fy - 8 + dy * 0.1, 3, 0, 7); x.fillStyle = col; x.fill(); }
+    x.beginPath(); x.moveTo(fx - 8, fy + 15); x.quadraticCurveTo(fx, fy + 19, fx + 8, fy + 15); x.stroke();
+    x.restore();
+    // 見つめる数字
+    x.fillStyle = '#fff'; x.beginPath(); x.arc(ph.x, ph.y - 52, 13, 0, 7); x.fill(); x.fillStyle = '#000'; x.font = 'bold 17px sans-serif'; x.textAlign = 'center'; x.fillText('5', ph.x, ph.y - 46);
+    // 文字
+    x.fillStyle = '#ffcc00'; x.font = 'bold 24px sans-serif'; x.fillText(bad ? '頭だけ先に行くと…' : '頭とスマホをいっしょに', cx, 30);
+    x.fillStyle = col; x.font = 'bold 22px sans-serif'; x.fillText(bad ? (m < 6 ? '' : 'ずれ！') : 'ずれない ✓', cx, 330);
+    x.fillStyle = 'rgba(255,255,255,.85)'; x.font = 'bold 20px sans-serif'; x.textAlign = 'left'; x.fillText(`${ARW[k]} ${DJ[k]}`, 14, 330);
+    requestAnimationFrame(fr);
+  })();
+}
+
+// ════ 1セット（1つの向き）を測る
+// 流れ：楽にして1.2秒（このときの頭の向きを「ずれ0」にする）→ 向きを声で言う → 低い音2つで構え → 高い音（真ん中）・低い音（向けた先）で reps 往復
+// ずれ＝カメラから見た頭の向きが、最初の楽にしたときから動いた分（度）。トレーニングでは円と数字でその場に出す
+async function runSet(k, T, reps, live) {
+  const my = tok;
+  SETON = true; dark(true); fixOn(true); fixRoll(true); hudOn(!!live); LIVE = live ? { base: null } : null;
+  if (live) { $('hud').style.borderColor = '#556'; $('hudDot').style.display = 'none'; $('hudNum').textContent = ''; }
+  cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}`, 'thin top', DJ[k]);   // 向きは字と声で（目を数字から離さなくていいように）
+  // 楽にしたときの頭の向き
+  const t1 = performance.now(), B = [];
+  while (my === tok && performance.now() - t1 < 8000) {
+    if (lastHp) B.push({ t: performance.now(), rot: lastHp.rot, up: lastHp.up }); else B.length = 0;
+    if (B.length && B[B.length - 1].t - B[0].t >= 1200) break;
+    await sleep(16);
+  }
+  if (my !== tok) return null;
+  if (B.length < 5) return { k, err: 'face' };
+  const base = { rot: med(B.map(b => b.rot)), up: med(B.map(b => b.up)) };
+  if (LIVE) LIVE.base = base;
+  await voiceQuiet(1800); if (my !== tok) return null;
+  for (let i = 0; i < 2; i++) { beep(520, 70, 0.18); await sleep(T * 500); if (my !== tok) return null; }   // 構え（低い音2つ）
+  rec = []; const t0 = performance.now(), D = T * 1000;
+  const until = async ms => { while (my === tok && performance.now() - t0 < ms) await sleep(Math.min(16, ms - (performance.now() - t0))); };
+  for (let c = 0; c < reps; c++) {
+    beep(1320, 90); await until(c * D + D / 2); if (my !== tok) return null;   // 高い音＝真ん中から出る
+    beep(660, 90); await until((c + 1) * D); if (my !== tok) return null;      // 低い音＝向けた先から戻る
+  }
+  beep(1320, 90);
+  const fr = rec; rec = null; LIVE = null; SETON = false;
+  return analyzeSet(k, fr, base, t0, T, reps);
+}
+// 1セットの読み。本人の右・上が＋。along＝動いている向きに沿った成分（＋＝頭が先に行く＝スマホが遅れる・−＝スマホが先に行く）、cross＝動かす向きと直角にそれた分
+function analyzeSet(k, fr, base, t0, T, reps) {
+  const D = T * 1000, [ux, uy] = unitV(k), px_ = -uy, py_ = ux;
+  const S = fr.filter(s => s.t >= t0 && s.t < t0 + reps * D);
+  const ok = S.filter(s => !s.miss && s.hp);
+  const miss = S.length ? (S.length - ok.length) / S.length : 1;
+  if (ok.length < 10) return { k, err: 'face', miss: r3(miss) };
+  const n0 = ok.slice(0, 5).map(s => s.n), nx0 = med(n0.map(n => n.x)), ny0 = med(n0.map(n => n.y));
+  const g0 = ok.filter(s => s.gz).slice(0, 5), gx0 = med(g0.map(s => s.gz.x)), gy0 = med(g0.map(s => s.gz.y));
+  const E = ok.map(s => {
+    const dR = s.hp.rot - base.rot, dU = s.hp.up - base.up, ph = ((s.t - t0) / D) % 1, sg = ph < 0.5 ? 1 : -1;
+    return { dR, dU, m: Math.hypot(dR, dU), along: (dR * ux + dU * uy) * sg, cross: dR * px_ + dU * py_, pos: Math.hypot(-(s.n.x - nx0), -(s.n.y - ny0)), gz: s.gz && Number.isFinite(gx0) ? Math.hypot(s.gz.x - gx0, s.gz.y - gy0) : NaN };
+  });
+  const M = E.map(e => e.m), worst = E.reduce((a, b) => b.m > a.m ? b : a, E[0]);
+  // ジャイロ：1往復ごとに、往復の始まりから一番遠くまで動いた角度と、一番速い回転
+  let move = null, speed = null;
+  const G = S.filter(s => s.gy);
+  if (G.length > S.length * 0.5) {
+    const A = [], V = [];
+    for (let c = 0; c < reps; c++) { const C = G.filter(s => s.t >= t0 + c * D && s.t < t0 + (c + 1) * D); if (C.length < 4) continue;
+      const a = C[0].gy; A.push(Math.max(...C.map(s => Math.hypot(s.gy.x - a.x, s.gy.y - a.y)))); V.push(Math.max(...C.map(s => s.gy.r))); }
+    if (A.length) { move = r0(med(A)); speed = r0(med(V)); }
+  }
+  const cr = mean(E.map(e => e.cross));
+  return { k, n: E.length, miss: r3(miss), mean: r1(mean(M)), p95: r1(qtl(M, 0.95)), inOk: r3(M.filter(m => m < VC.ok).length / M.length),
+    along: r1(mean(E.map(e => e.along))), cross: r1(cr), crossDir: Math.abs(cr) >= 1 ? dirOf(px_ * cr, py_ * cr) : null,
+    worstDir: worst.m >= 1 ? dirOf(worst.dR, worst.dU) : null, pos: r3(mean(E.map(e => e.pos))), gaze: r3(mean(E.map(e => e.gz).filter(Number.isFinite))),
+    move, speed, base: { rot: r1(base.rot), up: r1(base.up) } };
+}
+
+// ════ トレーニング・テストの流れ
+let CFG = { set: localStorage.getItem('vorcSet') || 'lr', speed: localStorage.getItem('vorcSpeed') || 'mid' };
+let MODE = 'train', NSTEP = 2;
+function planOf(mode) { return mode === 'test' ? { dirs: TEST_DIRS, T: SPEEDS[TEST_SPEED][0], speed: TEST_SPEED, reps: TEST_REPS } : { dirs: SETS[CFG.set], T: SPEEDS[CFG.speed][0], speed: CFG.speed, reps: TRAIN_REPS }; }
+const INTRO_TRAIN = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>円の中の点が数字の後ろに隠れていれば、ずれていません。音に合わせて往復：高い音で真ん中、低い音で向けた先</small>';
+const INTRO_TEST = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>8つの向きを3往復ずつ。結果は最後に出ます。音に合わせて往復：高い音で真ん中、低い音で向けた先</small>';
+function stepIntro() {
+  const P_ = planOf(MODE);
+  show(1, NSTEP, MODE === 'test' ? 'テスト' : `トレーニング（${SETN[CFG.set]}・${SPEEDS[CFG.speed][1]}）`);
+  cue('<canvas id="demoC" width="440" height="340"></canvas>' + (MODE === 'test' ? INTRO_TEST : INTRO_TRAIN), 'top fit', MODE === 'test' ? INTRO_TEST : INTRO_TRAIN);
+  demoVorc($('demoC'));
+  btn('始める', () => runSession(P_));
+}
+async function runSession(P_) {
+  const my = tok; clearBtns(); audioStart();
+  await voiceQuiet(); if (my !== tok) return;
+  let w0 = performance.now(); while (!last && performance.now() - w0 < 5000) await sleep(100);
+  if (!last) return fail(stepIntro, '顔が見つかりませんでした');
+  cue('');
+  const out = [];
+  for (let i = 0; i < P_.dirs.length; i++) {
+    if (my !== tok) return;
+    setStep(2 + i);
+    const r = await runSet(P_.dirs[i], P_.T, P_.reps, MODE === 'train');
+    if (my !== tok || !r) return;
+    out.push(r);
+    if (MODE === 'train' && !r.err) {   // トレーニング：1セットごとにその場で点数（数字は読み上げない）
+      hudOn(false); fixRoll(false);
+      cue(`${DJ[r.k]}：平均 <b style="color:${colOf(r.mean)}">${r.mean}°</b><small>ずれ ${VC.ok}° 未満の時間 ${Math.round(r.inOk * 100)}%${r.move != null && r.move < MOVE_MIN ? '・動きが小さめ' : ''}</small>`, 'top', '');
+      await sleep(2200);
+    } else { hudOn(false); cue(r.err ? '顔が外れました。次へ進みます' : '', 'thin top'); await sleep(r.err ? 1500 : 900); }
+    if (my !== tok) return;
+  }
+  fixRoll(false); fixOn(false); dark(false); endBeep();
+  RUN.plan = { dirs: P_.dirs, T: P_.T, speed: P_.speed, reps: P_.reps }; RUN.sets = out; RUN.sum = summarize(out);
+  if (!RUN.sum.n) return fail(stepIntro, '顔が見えている時間が短すぎました');
+  finish();
+}
+function summarize(S) {
+  const ok = S.filter(s => !s.err), by = k => ok.find(s => s.k === k);
+  const worst = ok.slice().sort((a, b) => b.mean - a.mean)[0];
+  const pair = (a, b) => by(a) && by(b) ? { [a]: by(a).mean, [b]: by(b).mean, diff: r1(by(a).mean - by(b).mean) } : null;
+  return { n: ok.length, mean: ok.length ? r1(mean(ok.map(s => s.mean))) : null, inOk: ok.length ? r3(mean(ok.map(s => s.inOk))) : null, worst: worst ? worst.k : null,
+    lr: pair('R', 'L'), ud: pair('U', 'D'), lost: S.filter(s => s.err).map(s => s.k), small: ok.filter(s => s.move != null && s.move < MOVE_MIN).map(s => s.k) };
+}
+
+// ════ 結果
+// 向きごとのずれの大きさを8本の線で（線が長い向きほど、ずれが大きい）。緑の輪＝3°・黄の輪＝6°（仮）
+function radarSVG(S) {
+  const ok = S.filter(s => !s.err), mx = Math.max(VC.warn * 1.4, ...ok.map(s => s.mean)), R = 90, sc = v => v / mx * R;
+  const spokes = DIRS.map(k => { const [u, v] = unitV(k), s = ok.find(q => q.k === k), x2 = 120 + u * R, y2 = 120 - v * R;
+    const lab = `<text x="${120 + u * (R + 16)}" y="${124 - v * (R + 16)}" fill="#dfe3ea" font-size="11" text-anchor="middle">${DJ[k]}</text>`;
+    if (!s) return `<line x1="120" y1="120" x2="${x2}" y2="${y2}" stroke="#2b2f38"/>${lab}`;
+    const x = 120 + u * sc(s.mean), y = 120 - v * sc(s.mean);
+    return `<line x1="120" y1="120" x2="${x2}" y2="${y2}" stroke="#2b2f38"/><line x1="120" y1="120" x2="${x}" y2="${y}" stroke="${colOf(s.mean)}" stroke-width="6" stroke-linecap="round"/>${lab}`; }).join('');
+  return `<svg viewBox="0 0 240 240" width="240" height="240" style="display:block;margin:6px auto;background:#11151c;border-radius:10px"><circle cx="120" cy="120" r="${sc(VC.ok)}" fill="none" stroke="#5ad18b" stroke-dasharray="3 3"/><circle cx="120" cy="120" r="${sc(VC.warn)}" fill="none" stroke="#ffd166" stroke-dasharray="3 3"/>${spokes}<circle cx="120" cy="120" r="5" fill="#fff"/></svg>`;
+}
+const alongWord = a => !Number.isFinite(a) || Math.abs(a) < 1 ? '' : a > 0 ? `スマホが遅れる ${Math.abs(a)}°` : `スマホが先に行く ${Math.abs(a)}°`;
+function setRow(s) {
+  if (s.err) return `${DJ[s.k]}へ：<span style="color:#ff8a65">顔が外れて読めず</span>`;
+  const sub = [alongWord(s.along), s.crossDir ? `${DJ[s.crossDir]}にそれる ${Math.abs(s.cross)}°` : ''].filter(Boolean).join('・');
+  const ex = [s.move != null ? `動かした角度 約${s.move}°` : '', s.miss > 0.05 ? `顔が外れた ${Math.round(s.miss * 100)}%` : ''].filter(Boolean).join('・');
+  return `${DJ[s.k]}へ：平均 <b style="color:${colOf(s.mean)}">${s.mean}°</b>・最大 ${s.p95}°${s.worstDir ? `（ずれた向き ${DJ[s.worstDir]}）` : ''}${sub ? `<br><span class="small">　${sub}</span>` : ''}${ex ? `<br><span class="small">　${ex}${s.move != null && s.move < MOVE_MIN ? '<span style="color:#ff8a65">・動きが小さめ</span>' : ''}</span>` : ''}`;
+}
+function runHTML(r) {
+  if (!r.sets) return '<div class="res">この記録には結果がありません。</div>';
+  const S = r.sum, P_ = r.plan;
+  const pr = (p, a, b) => p ? `${DJ[a]} ${p[a]}° ／ ${DJ[b]} ${p[b]}°（差 ${Math.abs(p.diff)}°${Math.abs(p.diff) >= 2 ? `・${DJ[p.diff > 0 ? a : b]}が大きい` : ''}）` : '';
+  return `<p class="resHead">${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${SPEEDS[P_.speed][1]}・1往復${P_.T}秒×${P_.reps}）</p><div class="res">
+    全体のずれの平均 <b>${S.mean ?? '—'}°</b>・ずれ ${VC.ok}° 未満の時間 <b>${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}</b><br>いちばんずれた向き <b>${S.worst ? DJ[S.worst] : '—'}</b>
+    ${S.lr ? `<br>左右：${pr(S.lr, 'R', 'L')}` : ''}${S.ud ? `<br>上下：${pr(S.ud, 'U', 'D')}` : ''}
+    ${radarSVG(r.sets)}${r.sets.map(setRow).join('<br>')}
+    <br><span class="small">ずれ＝カメラから見た頭の向きが、楽にしたときから動いた角度（度）。カメラは左右を8割・上下を半分ほどに小さく読むので目安。最大は大きい方から5%の所。「スマホが遅れる」＝頭が先に行っている。色の線引き（緑 ${VC.ok}° 未満・黄 ${VC.warn}° 未満）は仮で、どこからを問題とするかはまだ決めていない${S.lost.length ? `<br><span style="color:#ff8a65">※顔が外れて読めなかった向き：${S.lost.map(k => DJ[k]).join('・')}</span>` : ''}${S.small.length ? `<br><span style="color:#ff8a65">※動きが小さかった向き（${MOVE_MIN}° 未満）：${S.small.map(k => DJ[k]).join('・')}。動かさなければずれも出ないので、楽に向けられる所まで動かしてください</span>` : ''}</span></div>`;
+}
+function runText(r) {
+  if (!r.sets) return '';
+  const S = r.sum;
+  return [`VORC トレーニング｜FNT の記録 ${when(r.started)}・${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${SPEEDS[r.plan.speed][1]}・1往復${r.plan.T}秒×${r.plan.reps}）`,
+    `全体の平均 ${S.mean ?? '—'}°・${VC.ok}°未満 ${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}・いちばんずれた向き ${S.worst ? DJ[S.worst] : '—'}`,
+    r.sets.map(s => s.err ? `${DJ[s.k]} 読めず` : `${DJ[s.k]} 平均${s.mean}°・最大${s.p95}°${alongWord(s.along) ? '・' + alongWord(s.along) : ''}${s.move != null ? `・動き${s.move}°` : ''}`).join('／')].join('\n');
+}
+const RUNS_KEY = 'vorc_runs';
+const runsAll = () => { try { return JSON.parse(localStorage.getItem(RUNS_KEY) || '[]'); } catch (e) { return []; } };
+function saveRun() { try { const a = runsAll(); a.push(RUN); while (a.length > 30) a.shift(); localStorage.setItem(RUNS_KEY, JSON.stringify(a)); } catch (e) {} }
+const when = iso => new Date(iso).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+let VIEW = null;
+function showEnd(r, fresh) {
+  VIEW = r; screen('sEnd');
+  $('endHead').textContent = fresh ? 'おつかれさまでした' : '記録';
+  $('endWhen').textContent = when(r.started);
+  $('endList').innerHTML = runHTML(r);
+  $('bCopy').textContent = '記録をテキストでコピー';
+  $('bAgain').textContent = r.mode === 'test' ? 'もう一度テストする' : 'もう一度トレーニングする';
+}
+function finish() {
+  tok++; RUN.ended = new Date().toISOString(); RUN.delegate = delegate; RUN.gyro = GY.on && GY.n > 0;
+  saveRun(); leaveStage(); showEnd(RUN, true);
+}
+async function copyText(t, b, label) { let ok = false; try { await navigator.clipboard.writeText(t); ok = true; } catch (e) { const a = $('copyArea'); a.value = t; a.select(); try { ok = document.execCommand('copy'); } catch (_) {} } toast(ok ? 'コピーしました' : 'コピーできませんでした'); if (b && label) b.textContent = ok ? 'コピーしました' : label; }
+$('bCopy').onclick = () => VIEW && copyText(runText(VIEW), $('bCopy'), '記録をテキストでコピー');
+$('bAgain').onclick = () => begin(VIEW && VIEW.mode === 'test' ? 'test' : 'train');
+$('bHome').onclick = $('bHistHome').onclick = () => goHome();
+$('bHistCopy').onclick = () => { const a = runsAll().slice().reverse(); copyText(a.length ? a.map(runText).join('\n\n') : '記録はまだありません', null); };
+function showHist() {
+  const a = runsAll().slice().reverse();
+  $('histList').innerHTML = a.length ? a.map((r, i) => `<button class="histItem" data-i="${i}">${when(r.started)}　${r.mode === 'test' ? 'テスト' : 'トレーニング'}<small>平均 ${r.sum ? r.sum.mean ?? '—' : '—'}°・いちばんずれた向き ${r.sum && r.sum.worst ? DJ[r.sum.worst] : '—'}</small></button>`).join('') : '<p class="desc">まだ記録はありません。</p>';
+  $('histList').querySelectorAll('.histItem').forEach(b => { b.onclick = () => showEnd(a[+b.dataset.i], false); });
+  screen('sHist');
+}
+
+// ── 画面の切り替え
+function screen(id) { for (const s of ['sHome', 'sEnd', 'sHist']) $(s).classList.toggle('hide', s !== id); scrollTo(0, 0); if (id === 'sHome') { tok++; demoVorc($('homeDemo')); } }
+function leaveStage() {
+  tok++; fixRoll(false); LIVE = null; SETON = false; rec = null; try { speechSynthesis.cancel(); } catch (e) {} VA.pause();
+  camWanted = false; releaseCam(); camFixBtn(false);
+  $('sMain').classList.add('hide'); document.body.classList.remove('playing');
+}
+function goHome() { leaveStage(); screen('sHome'); }
+$('bQuit').onclick = () => goHome();
+
+// トップの選び（向き・速さ）。端末に覚える
+function paintChips() { document.querySelectorAll('[data-cfg]').forEach(g => g.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.v === CFG[g.dataset.cfg]))); }
+document.querySelectorAll('[data-cfg]').forEach(g => g.querySelectorAll('.chip').forEach(c => { c.onclick = () => { CFG[g.dataset.cfg] = c.dataset.v; localStorage.setItem(g.dataset.cfg === 'set' ? 'vorcSet' : 'vorcSpeed', c.dataset.v); paintChips(); }; }));
+paintChips();
+
+async function begin(mode) {
+  const mot = motionStart();   // iPhone はボタンを押した中で許可を取る（ほかの await より先に呼ぶ）
+  MODE = mode; newRun(mode); const P_ = planOf(mode); NSTEP = P_.dirs.length + 2;
+  try { VA.muted = false; VA.src = 'voice/unlock.mp3'; VA.play().catch(() => {}); } catch (e) {}
+  audioStart();
+  const bs = document.querySelectorAll('[data-mode], #bAgain'); bs.forEach(b => { b.disabled = true; });
+  $('loadState').classList.remove('err');
+  await mot;
+  const startTry = async () => { for (let i = 0; ; i++) { try { return await startCam(); } catch (e) { if (i >= 4 || !/NotReadable|Abort|TrackStart/.test(e.name)) throw e; await sleep(1000); } } };
+  try { await Promise.race([startTry(), sleep(10000).then(() => { throw { name: '時間切れ。ほかのアプリやタブでカメラを使っていないか確かめて、ページを読み込み直してください' }; })]); }
+  catch (e) {
+    camWanted = false;
+    $('loadState').textContent = 'カメラを起動できませんでした（' + e.name + '）。' + (/NotAllowed|Security/.test(e.name) ? 'ブラウザの設定でカメラを許可してください。' : 'ほかのタブやカメラを使うアプリを閉じてから、もう一度押してください。');
+    $('loadState').classList.add('err'); bs.forEach(b => { b.disabled = !lm; }); screen('sHome'); return;
+  }
+  bs.forEach(b => { b.disabled = false; });
+  $('sMain').classList.remove('hide'); document.body.classList.add('playing');
+  stepAlign(stepIntro, '次へ');
+}
+document.querySelectorAll('[data-mode]').forEach(b => { b.onclick = () => begin(b.dataset.mode); });
+
+// ── スプラッシュ（起動時だけ。押した中で音を使えるようにする）
+$('tapStart').onclick = () => {
+  try { VA.muted = false; VA.src = 'voice/unlock.mp3'; VA.play().catch(() => {}); } catch (e) {}
+  audioStart();
+  $('splash').classList.add('hide');
+};
+
+// ── サイドメニュー（フォーカストラップ＋ESC。手本：pinto-8）
+const side = $('side'), menuOv = $('menuOverlay'); let lastFocus = null;
+function openMenu() { lastFocus = document.activeElement; $('voiceToggle').checked = VOICE; side.classList.add('open'); menuOv.classList.add('open'); side.setAttribute('aria-hidden', 'false'); $('closeMenu').focus(); document.addEventListener('keydown', menuKey); }
+function closeMenu() { side.classList.remove('open'); menuOv.classList.remove('open'); side.setAttribute('aria-hidden', 'true'); document.removeEventListener('keydown', menuKey); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+function menuKey(e) {
+  if (e.key === 'Escape') { closeMenu(); return; }
+  if (e.key === 'Tab') { const f = side.querySelectorAll('button, a[href], input'); if (!f.length) return; const a = f[0], z = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); } }
+}
+$('menuBtn').onclick = openMenu; $('closeMenu').onclick = closeMenu; menuOv.onclick = closeMenu;
+$('mHist').onclick = () => { closeMenu(); showHist(); };
+$('voiceToggle').onchange = () => { VOICE = $('voiceToggle').checked; localStorage.setItem(VOICE_KEY, VOICE ? 'on' : 'off'); voiceBtn(); if (!VOICE) { try { speechSynthesis.cancel(); } catch (e) {} VA.pause(); } toast(VOICE ? '音声の案内：オン' : '音声の案内：オフ'); };
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2400); }
+
+function setVH() { document.documentElement.style.setProperty('--vh', (innerHeight * 0.01) + 'px'); }
+setVH(); addEventListener('resize', setVH);
+screen('sHome');
+
+if (TEST) window.__vorc = { get RUN() { return RUN; }, get tok() { return tok; }, begin, analyzeSet, summarize, runHTML, runsAll, last: () => last, hp: () => lastHp };
+
+// ── Service Worker（Network First）。新しい版に切り替わったら読み込み直す
+if ('serviceWorker' in navigator && !TEST) {
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (refreshing || !idle()) return; refreshing = true; location.reload(); });
+  addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(err => console.warn('[SW] register failed', err)); });
+}
+</script>
+</body>
+</html>
