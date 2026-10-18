@@ -633,7 +633,7 @@ function demoVorc(c) {
 
 // ════ 1セット（1つの向き）を測る
 // 流れ：楽にして1.2秒（このときの頭の向きを「ずれ0」にする）→ 向きを声で言う → 低い音2つで構え → 高い音（真ん中）・低い音（向けた先）で reps 往復
-// ずれ＝カメラから見た頭の向きが、最初の楽にしたときから動いた分（度）。トレーニングでは円と数字でその場に出す
+// ずれ＝目と目の間の点が、最初の楽にしたときの位置から動いた分（度に直した目安）。トレーニングでは円と数字でその場に出す。テストも同じ測り方
 async function runSet(k, T, reps, live) {
   const my = tok;
   SETON = true; dark(true); fixOn(true); fixRoll(true); hudOn(!!live); LIVE = live ? { base: null } : null;
@@ -661,7 +661,7 @@ async function runSet(k, T, reps, live) {
   }
   beep(1320, 90);
   const fr = rec; rec = null; LIVE = null; SETON = false;
-  return analyzeSet(k, fr, base, t0, T, reps, live);
+  return analyzeSet(k, fr, base, t0, T, reps, true);   // 両モードとも目と目の間の点で測る（2026-10-18 そろえた）
 }
 // 1セットの読み。本人の右・上が＋。along＝動いている向きに沿った成分（＋＝頭が先に行く＝スマホが遅れる・−＝スマホが先に行く）、cross＝動かす向きと直角にそれた分
 function analyzeSet(k, fr, base, t0, T, reps, byGl = false) {
@@ -765,7 +765,7 @@ function runHTML(r) {
     全体のずれの平均 <b>${S.mean ?? '—'}°</b>・ずれ ${VC.ok}° 未満の時間 <b>${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}</b><br>いちばんずれた向き <b>${S.worst ? DJ[S.worst] : '—'}</b>
     ${S.lr ? `<br>左右：${pr(S.lr, 'R', 'L')}` : ''}${S.ud ? `<br>上下：${pr(S.ud, 'U', 'D')}` : ''}
     ${radarSVG(r.sets)}${r.sets.map(setRow).join('<br>')}
-    <br><span class="small">ずれ＝カメラから見た頭の向きが、楽にしたときから動いた角度（度）。カメラは左右を8割・上下を半分ほどに小さく読むので目安。最大は大きい方から5%の所。「スマホが遅れる」＝頭が先に行っている。色の線引き（緑 ${VC.ok}° 未満・黄 ${VC.warn}° 未満）は仮で、どこからを問題とするかはまだ決めていない${S.lost.length ? `<br><span style="color:#ff8a65">※顔が外れて読めなかった向き：${S.lost.map(k => DJ[k]).join('・')}</span>` : ''}${S.small.length ? `<br><span style="color:#ff8a65">※動きが小さかった向き（${MOVE_MIN}° 未満）：${S.small.map(k => DJ[k]).join('・')}。動かさなければずれも出ないので、楽に向けられる所まで動かしてください</span>` : ''}</span></div>`;
+    <br><span class="small">ずれ＝目と目の間の点が、楽にしたときの位置から動いた分を、頭を何度回した分かに直した値（度・目安。両目の外の端の間≒9cm、その点から首の回る軸≒10cm として計算）。トレーニングと同じ測り方。最大は大きい方から5%の所。「スマホが遅れる」＝頭が先に行っている。色の線引き（緑 ${VC.ok}° 未満・黄 ${VC.warn}° 未満）は仮で、どこからを問題とするかはまだ決めていない${S.lost.length ? `<br><span style="color:#ff8a65">※顔が外れて読めなかった向き：${S.lost.map(k => DJ[k]).join('・')}</span>` : ''}${S.small.length ? `<br><span style="color:#ff8a65">※動きが小さかった向き（${MOVE_MIN}° 未満）：${S.small.map(k => DJ[k]).join('・')}。動かさなければずれも出ないので、楽に向けられる所まで動かしてください</span>` : ''}</span></div>`;
 }
 function runText(r) {
   if (!r.sets) return '';
