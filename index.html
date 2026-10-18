@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b1a20">
+<meta name="theme-color" content="#070707">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,68 +16,75 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Shippori+Mincho:wght@500;700;800&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet">
 <style>
 /* ===== FNT標準の外まわり（手本：~/FNT-Apps/pinto-8。鼻先あわせ hanasaki-awase と同じ） ===== */
-:root{ --bg0:#0b1a20; --bg1:#123138; --bg2:#16414a; --accent:#7fe0cd; --accent2:#3fa895; --accentInk:#06231d;
-  --ink:#f2faf7; --muted:#a8c6bf; --line:rgba(255,255,255,.12); --card:rgba(255,255,255,.07); --danger:#ffb4a8; --vh:1vh; }
+:root{ --bg0:#050505; --bg1:#0e0e0f; --bg2:#1a1916; --accent:#d8bd84; --accent2:#a8874f; --accentInk:#141008;
+  --ink:#f4f1ea; --muted:#9d978b; --line:rgba(216,189,132,.18); --card:rgba(255,255,255,.035); --danger:#ffb4a8; --vh:1vh;
+  --serif:"Shippori Mincho","Hiragino Mincho ProN",serif; --latin:"Cormorant Garamond","Times New Roman",serif; }
 *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 html,body{ overflow-x:hidden; max-width:100%; }
-html{ height:100%; -webkit-text-size-adjust:100%; background:#0b1a20; }
-body{ font-family:"M PLUS Rounded 1c", system-ui, sans-serif; font-weight:700; color:var(--ink); line-height:1.7;
-  background:radial-gradient(120% 90% at 50% 6%, var(--bg2) 0%, var(--bg1) 44%, var(--bg0) 100%); background-attachment:fixed;
+html{ height:100%; -webkit-text-size-adjust:100%; background:#050505; }
+body{ font-family:"Noto Sans JP", system-ui, sans-serif; font-weight:500; letter-spacing:.02em; color:var(--ink); line-height:1.7;
+  background:radial-gradient(110% 70% at 50% -10%, var(--bg2) 0%, var(--bg1) 45%, var(--bg0) 100%); background-attachment:fixed;
   min-height:100vh; min-height:100dvh; min-height:calc(var(--vh) * 100);
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 body.playing{ overflow:hidden; touch-action:none; }
-button{ font-family:inherit; font-weight:700; cursor:pointer; border:none; }
+button{ font-family:inherit; font-weight:500; cursor:pointer; border:none; letter-spacing:.06em; }
 a{ color:var(--accent); }
 :focus-visible{ outline:3px solid var(--accent); outline-offset:3px; border-radius:8px; }
 .hide{ display:none!important; }
 
 #splash{ position:fixed; inset:0; z-index:1000; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px;
-  background:radial-gradient(120% 90% at 50% 20%, var(--bg2) 0%, var(--bg1) 45%, var(--bg0) 100%); transition:opacity .45s ease, visibility .45s ease; }
+  background:radial-gradient(90% 60% at 50% 38%, #1c1a15 0%, #0b0b0b 55%, #030303 100%); transition:opacity .45s ease, visibility .45s ease; }
 #splash.hide{ display:flex!important; opacity:0; visibility:hidden; pointer-events:none; }
-#splash img{ width:132px; height:132px; margin-bottom:22px; border-radius:26px; }
-#splash .fnt{ font-size:13px; letter-spacing:.24em; color:var(--muted); margin-bottom:14px; }
-#splash h1{ font-size:32px; font-weight:800; color:var(--accent); margin-bottom:10px; }
-#splash .lead{ font-size:14px; color:var(--muted); margin-bottom:30px; }
-#splash .tapstart{ min-height:52px; padding:14px 34px; border-radius:16px; font-size:17px; font-weight:800; color:var(--accentInk); background:linear-gradient(180deg,var(--accent),var(--accent2)); animation:breathe 2.4s ease-in-out infinite; }
+#splash img{ width:96px; height:96px; margin-bottom:30px; border-radius:22px; box-shadow:0 0 0 1px var(--line),0 20px 60px rgba(0,0,0,.6); }
+#splash .fnt{ font-family:var(--latin); font-size:13px; letter-spacing:.42em; color:var(--accent); margin-bottom:18px; }
+#splash h1{ font-family:var(--serif); font-size:34px; font-weight:700; color:var(--ink); letter-spacing:.12em; margin-bottom:6px; }
+#splash h1 span{ display:block; font-family:var(--latin); font-size:58px; font-weight:500; letter-spacing:.18em; color:var(--accent); line-height:1.1; margin-bottom:6px; }
+#splash .rule{ width:56px; height:1px; background:linear-gradient(90deg,transparent,var(--accent),transparent); margin:14px auto 16px; }
+#splash .lead{ font-family:var(--serif); font-size:15px; color:var(--muted); letter-spacing:.14em; margin-bottom:38px; }
+#splash .tapstart{ min-height:52px; padding:14px 46px; border-radius:999px; font-size:15px; font-weight:500; letter-spacing:.24em; color:var(--accent); background:transparent; border:1px solid var(--accent); animation:breathe 2.8s ease-in-out infinite; }
 #splash .note{ margin-top:22px; font-size:12px; color:var(--muted); }
 #splash .copy{ position:absolute; bottom:calc(20px + env(safe-area-inset-bottom)); font-size:11px; color:var(--muted); }
-@keyframes breathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.05); } }
+@keyframes breathe{ 0%,100%{ box-shadow:0 0 0 0 rgba(216,189,132,0); } 50%{ box-shadow:0 0 28px 2px rgba(216,189,132,.28); } }
 
 .app{ width:100%; max-width:480px; margin:0 auto; min-height:100vh; min-height:calc(var(--vh) * 100); display:flex; flex-direction:column; }
 header{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px 4px; }
 .logo{ display:flex; align-items:center; gap:10px; }
 .logo img{ width:34px; height:34px; }
-.logo b{ font-size:16px; font-weight:800; letter-spacing:.02em; }
-.menuBtn{ width:46px; height:46px; border-radius:12px; background:var(--card); color:var(--ink); font-size:22px; display:flex; align-items:center; justify-content:center; }
+.logo b{ font-family:var(--latin); font-size:20px; font-weight:600; letter-spacing:.28em; color:var(--accent); }
+.logo b small{ font-family:var(--serif); font-size:12px; letter-spacing:.16em; color:var(--muted); margin-left:8px; }
+.menuBtn{ width:46px; height:46px; border-radius:50%; background:transparent; border:1px solid var(--line); color:var(--accent); font-size:18px; display:flex; align-items:center; justify-content:center; }
 .app main{ flex:1; display:flex; flex-direction:column; padding:8px 18px 4px; }
-.screen h2{ font-size:22px; font-weight:800; line-height:1.5; margin:4px 0 8px; }
+.screen h2{ font-family:var(--serif); font-size:23px; font-weight:700; line-height:1.6; letter-spacing:.08em; margin:10px 0 10px; }
 .desc{ font-size:14.5px; color:var(--muted); line-height:1.85; }
 .desc b{ color:var(--ink); }
 .loadState{ font-size:13px; color:var(--muted); margin:8px 0 4px; }
 .loadState.err{ color:var(--danger); }
-.card{ margin:14px 0 4px; padding:14px 14px 12px; border-radius:18px; background:var(--card); border:1px solid var(--line); }
-.card h3{ font-size:18px; font-weight:800; color:var(--accent); }
+.card{ position:relative; margin:18px 0 4px; padding:20px 18px 16px; border-radius:18px; background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015)); border:1px solid var(--line); }
+.card::before{ content:''; position:absolute; left:18px; right:18px; top:0; height:1px; background:linear-gradient(90deg,transparent,var(--accent),transparent); opacity:.7; }
+.card h3{ font-family:var(--serif); font-size:20px; font-weight:700; letter-spacing:.14em; color:var(--accent); }
+.card h3 em{ font-family:var(--latin); font-style:normal; font-size:12px; letter-spacing:.3em; color:var(--muted); margin-left:10px; }
 .card p{ font-size:14px; color:var(--ink); margin:2px 0 6px; }
-.card canvas{ display:block; width:100%; max-width:300px; aspect-ratio:440/340; margin:4px auto 8px; background:#0f1115; border-radius:12px; }
-.opt{ font-size:12.5px; color:var(--muted); margin:8px 0 4px; }
-.chips{ display:flex; gap:6px; }
-.chip{ flex:1; min-height:42px; padding:6px 4px; border-radius:12px; background:rgba(0,0,0,.25); border:1px solid var(--line); color:var(--ink); font-size:14px; }
-.chip.on{ background:var(--accent2); color:var(--accentInk); border-color:var(--accent2); }
-.btn{ width:100%; min-height:54px; padding:14px; border-radius:16px; font-size:17px; font-weight:800; color:var(--accentInk); background:linear-gradient(180deg,var(--accent),var(--accent2)); margin:6px 0; }
+.card canvas{ display:block; width:100%; max-width:300px; aspect-ratio:440/340; margin:4px auto 8px; background:#0b0b0b; border-radius:12px; }
+.opt{ font-size:11.5px; letter-spacing:.2em; color:var(--muted); margin:14px 0 6px; }
+.opt i{ font-style:normal; letter-spacing:.04em; opacity:.8; }
+.chips{ display:flex; gap:6px; flex-wrap:wrap; }
+.chip{ flex:1; min-width:52px; min-height:42px; padding:6px 4px; border-radius:999px; background:transparent; border:1px solid rgba(255,255,255,.14); color:var(--muted); font-size:13.5px; transition:all .15s; }
+.chip.on{ background:rgba(216,189,132,.12); color:var(--accent); border-color:var(--accent); }
+.btn{ width:100%; min-height:54px; padding:14px; border-radius:999px; font-size:15px; font-weight:700; letter-spacing:.2em; color:var(--accentInk); background:linear-gradient(135deg,#ead3a0 0%,#cfb077 45%,#a8874f 100%); box-shadow:0 8px 24px rgba(168,135,79,.18); margin:6px 0; }
 .btn:disabled{ opacity:.4; }
-.btn.ghost{ color:var(--ink); background:transparent; border:1px solid var(--line); }
+.btn.ghost{ color:var(--accent); background:transparent; border:1px solid var(--line); box-shadow:none; }
 .btn:active{ transform:translateY(1px); }
 .notes{ margin:16px 0 8px; padding:12px 14px; border-radius:14px; background:var(--card); border:1px solid var(--line); font-size:12.5px; color:var(--muted); line-height:1.8; }
 footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:center; }
-.fnt-copy{ display:block; font-size:11px; letter-spacing:.14em; color:var(--muted); opacity:.8; }
+.fnt-copy{ display:block; font-family:var(--latin); font-size:12px; letter-spacing:.3em; color:var(--muted); opacity:.8; }
 /* 結果・記録 */
 .res{ background:rgba(0,0,0,.28); border:1px solid var(--line); border-radius:14px; padding:10px 12px; margin:8px 0; font-size:14px; line-height:1.75; font-weight:500; }
-.res b{ color:#ffd166; }
+.res b{ color:var(--accent); }
 .small{ font-size:12.5px; color:#aab; }
-.resHead{ font-size:17px; font-weight:800; color:var(--accent); margin:14px 0 0; }
+.resHead{ font-family:var(--serif); font-size:18px; font-weight:700; letter-spacing:.1em; color:var(--accent); margin:14px 0 0; }
 .when{ font-size:13px; color:var(--muted); }
 #copyArea{ position:absolute; left:-9999px; width:10px; height:10px; }
 .histItem{ display:block; width:100%; text-align:left; padding:12px 14px; margin:8px 0; border-radius:14px; background:var(--card); border:1px solid var(--line); color:var(--ink); font-size:14.5px; line-height:1.6; }
@@ -92,7 +99,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 .side .top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
 .side .top b{ font-size:16px; font-weight:800; }
 .side .closeBtn{ width:44px; height:44px; border-radius:12px; background:var(--card); color:var(--ink); font-size:20px; }
-.side h4{ font-size:12px; letter-spacing:.14em; color:var(--accent); margin:18px 0 8px; }
+.side h4{ font-size:11px; letter-spacing:.3em; color:var(--accent); margin:20px 0 8px; }
 .side .guide{ font-size:13px; color:var(--muted); line-height:1.85; font-weight:500; }
 .side .guide ol{ padding-left:20px; }
 .side .guide b{ color:var(--ink); }
@@ -106,23 +113,24 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 .switch input:checked + .slider{ background:var(--accent2); }
 .switch input:checked + .slider::before{ transform:translateX(24px); }
 .side .side-copy{ margin-top:auto; padding-top:22px; font-size:10.5px; letter-spacing:.1em; color:var(--muted); opacity:.7; }
-.toast{ position:fixed; left:50%; bottom:calc(28px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(20px); background:rgba(18,49,56,.98); border:1px solid var(--line); color:var(--ink); font-size:13.5px;
+.toast{ position:fixed; left:50%; bottom:calc(28px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(20px); background:rgba(20,19,16,.98); border:1px solid var(--line); color:var(--ink); font-size:13.5px;
   padding:12px 18px; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.5); z-index:120; opacity:0; visibility:hidden; transition:opacity .25s ease, transform .25s ease, visibility .25s ease; max-width:88%; text-align:center; }
 .toast.show{ opacity:1; visibility:visible; transform:translateX(-50%) translateY(0); }
 
 /* ===== 測る画面（元：hanasaki-awase の #sMain まわりをそのまま） ===== */
-:where(#sMain) button{ font:inherit; font-size:17px; font-weight:700; border:0; border-radius:12px; padding:14px; width:100%; margin:5px 0; background:#2a6df4; color:#fff; cursor:pointer; }
-:where(#sMain) button.sub{ background:#2b2f38; }
+:where(#sMain) button{ font:inherit; font-size:16px; font-weight:700; letter-spacing:.16em; border:0; border-radius:999px; padding:14px; width:100%; margin:5px 0; background:linear-gradient(135deg,#ead3a0 0%,#cfb077 45%,#a8874f 100%); color:#141008; cursor:pointer; }
+:where(#sMain) button.sub{ background:transparent; color:#d8bd84; border:1px solid rgba(216,189,132,.35); }
 :where(#sMain) button:disabled{ opacity:.4; }
 #sMain{position:fixed;inset:0;background:#000;overflow:hidden;z-index:50;line-height:1.6;color:#f2f2f2}
 #stage{position:absolute;inset:0}
 #stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform:scaleX(-1);transition:opacity .3s}
 #overlay{position:absolute;inset:0;width:100%;height:100%;transition:opacity .3s}
 #stage.dark video{opacity:.10}#stage.dark #overlay{opacity:0}
+#stage.face video{opacity:.92}#stage.face #overlay{opacity:0}
 #sMain.dark #top{opacity:.25}
 #top{position:absolute;left:0;right:0;top:0;padding:calc(6px + env(safe-area-inset-top)) 100px 14px 12px;background:linear-gradient(rgba(0,0,0,.65),transparent);z-index:6;pointer-events:none}
 #title{font-size:14px;font-weight:700;color:#cfd3dc}
-.steps{display:flex;gap:3px;margin:0 0 4px}.steps span{flex:1;height:4px;border-radius:2px;background:#2b2f38}.steps span.on{background:#2a6df4}
+.steps{display:flex;gap:3px;margin:0 0 4px}.steps span{flex:1;height:4px;border-radius:2px;background:#2b2f38}.steps span.on{background:#d8bd84}
 #cue{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,520px);text-align:center;font-weight:800;font-size:clamp(23px,6.6vw,34px);line-height:1.45;padding:16px 16px;border-radius:18px;background:rgba(0,0,0,.62);text-shadow:0 2px 8px #000;pointer-events:none;z-index:8}
 #cue:empty{display:none}
 #cue.thin{background:none}
@@ -132,9 +140,9 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 #cue small{display:block;font-size:16px;font-weight:600;color:#dfe3ea;margin-top:8px;line-height:1.5}
 #cue canvas{display:block;margin:0 auto 6px;width:220px;height:170px;background:#0f1115;border-radius:12px}
 #cue .ok{display:inline-block;color:#5ad18b;font-size:1.5em}
-#cue .arw{font-size:1.6em;color:#ffcc00}
-#bVoice{position:absolute;right:10px;top:calc(40px + env(safe-area-inset-top));width:auto;margin:0;padding:6px 12px;font-size:14px;border-radius:20px;background:rgba(0,0,0,.6);border:1px solid #556;z-index:10}
-#bQuit{position:absolute;right:10px;top:calc(3px + env(safe-area-inset-top));width:auto;margin:0;padding:3px 12px;font-size:13px;border-radius:20px;background:rgba(0,0,0,.6);border:1px solid #556;z-index:10}
+#cue .arw{font-size:1.6em;color:#d8bd84}
+#bVoice{position:absolute;right:10px;top:calc(40px + env(safe-area-inset-top));width:auto;margin:0;padding:6px 12px;font-size:13px;border-radius:20px;background:rgba(0,0,0,.6);color:#f4f1ea;border:1px solid rgba(216,189,132,.35);z-index:10}
+#bQuit{position:absolute;right:10px;top:calc(3px + env(safe-area-inset-top));width:auto;margin:0;padding:3px 12px;font-size:13px;border-radius:20px;background:rgba(0,0,0,.6);color:#f4f1ea;border:1px solid rgba(216,189,132,.35);z-index:10}
 #bottom{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.75) 30%);z-index:9;max-height:62vh;overflow:auto;display:flex;flex-direction:column}
 #bottom:not(:has(*:not(:empty))){background:none}
 #msg{font-size:12.5px;color:#aab;text-align:center;min-height:0}
@@ -143,10 +151,10 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 /* 見つめる数字（画面のまん中）と、トレーニングのときのずれの円 */
 #fix{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:#fff;color:#000;font-size:32px;font-weight:800;line-height:56px;text-align:center;display:none;z-index:7;pointer-events:none}
 #hud{position:absolute;left:50%;top:50%;width:300px;height:300px;margin:-150px 0 0 -150px;border-radius:50%;border:5px solid #ff6b5a;display:none;z-index:6;pointer-events:none;transition:border-color .15s;
-  background:radial-gradient(circle closest-side,rgba(90,209,139,.22) 0 33.3%,rgba(255,209,102,.20) 33.3% 66.6%,rgba(255,107,90,.22) 66.6% 83%,rgba(255,107,90,.40) 83% 100%)}
+  background:radial-gradient(circle closest-side,rgba(90,209,139,.10) 0 33.3%,rgba(255,209,102,.10) 33.3% 66.6%,rgba(255,107,90,.10) 66.6% 83%,rgba(255,107,90,.20) 83% 100%)}
 #hud .zone{position:absolute;left:50%;top:50%;border-radius:50%;transform:translate(-50%,-50%)}
-#hudZ1{border:3px solid #5ad18b}#hudZ2{border:3px solid #ffd166}
-#hud .d{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:#5ad18b;box-shadow:0 0 10px rgba(0,0,0,.6)}
+#hudZ1{border:2px solid rgba(90,209,139,.85)}#hudZ2{border:2px solid rgba(255,209,102,.8)}
+#hud .d{position:absolute;left:50%;top:50%;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;background:radial-gradient(circle,rgba(90,209,139,.75) 0%,rgba(90,209,139,.4) 28%,rgba(90,209,139,0) 70%);mix-blend-mode:screen;transition:background .3s}
 #hudNum{position:absolute;left:50%;top:calc(50% + 162px);transform:translateX(-50%);font-size:24px;font-weight:800;white-space:nowrap;display:none;z-index:6;pointer-events:none;text-shadow:0 2px 6px #000}
 </style>
 </head>
@@ -155,7 +163,8 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 <div id="splash" role="dialog" aria-label="VORC トレーニングを開始">
   <img src="FNT512.png" alt="FNT ロゴ">
   <div class="fnt">FUNCTIONAL NEURO TRAINING</div>
-  <h1>VORC トレーニング</h1>
+  <h1><span>VORC</span>トレーニング</h1>
+  <div class="rule"></div>
   <p class="lead">画面を見つめたまま、頭とスマホをいっしょに。</p>
   <button class="tapstart" id="tapStart">タップで開始</button>
   <p class="note">🔊 音声と音で案内します（メニューでオフにできます）</p>
@@ -164,7 +173,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 
 <div class="app" id="app">
   <header>
-    <div class="logo"><img src="FNT512-transparent.png" alt=""><b>VORC トレーニング</b></div>
+    <div class="logo"><img src="FNT512-transparent.png" alt=""><b>VORC<small>トレーニング</small></b></div>
     <button class="menuBtn" id="menuBtn" aria-label="メニューを開く" aria-haspopup="true">☰</button>
   </header>
   <main>
@@ -174,16 +183,18 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
       <p class="loadState" id="loadState">読み込み中…</p>
       <canvas width="440" height="340" id="homeDemo" style="display:block;width:100%;max-width:300px;aspect-ratio:440/340;margin:6px auto 0;background:#0f1115;border-radius:12px"></canvas>
       <div class="card">
-        <h3>トレーニング</h3>
-        <p>動かしている間、どれくらいずれているかを<b>円の中の点</b>と数字で見ながら練習します</p>
-        <div class="opt">向き</div>
-        <div class="chips" data-cfg="set"><button class="chip" data-v="lr">左右</button><button class="chip" data-v="ud">上下</button><button class="chip" data-v="diag">斜め</button><button class="chip" data-v="all">全部</button></div>
-        <div class="opt">速さ（1往復）</div>
-        <div class="chips" data-cfg="speed"><button class="chip" data-v="slow">ゆっくり 3秒</button><button class="chip" data-v="mid">ふつう 2秒</button><button class="chip" data-v="fast">はやい 1.2秒</button></div>
+        <h3>トレーニング<em>TRAINING</em></h3>
+        <p>自分の顔を映したまま、ずれを<b>ふんわりした光</b>と数字で見ながら練習します</p>
+        <div class="opt">向き <i>（いくつでも選べます）</i></div>
+        <div class="chips" data-multi="sets"><button class="chip" data-v="lr">左右</button><button class="chip" data-v="ud">上下</button><button class="chip" data-v="diag">斜め</button></div>
+        <div class="opt">ペース <i>（向けるのに◯秒・戻すのに◯秒）</i></div>
+        <div class="chips" data-cfg="speed"><button class="chip" data-v="p1">1秒</button><button class="chip" data-v="p2">2秒</button><button class="chip" data-v="p3">3秒</button><button class="chip" data-v="p4">4秒</button><button class="chip" data-v="p5">5秒</button></div>
+        <div class="opt">1つの向きの往復</div>
+        <div class="chips" data-cfg="reps"><button class="chip" data-v="3">3回</button><button class="chip" data-v="5">5回</button><button class="chip" data-v="10">10回</button></div>
         <button class="btn" data-mode="train" disabled style="margin-top:12px">トレーニングを始める</button>
       </div>
       <div class="card">
-        <h3>テスト</h3>
+        <h3>テスト<em>ASSESSMENT</em></h3>
         <p>8つの向きを3往復ずつ（ふつうの速さ）。途中は何も出さず、<b>終わってから</b>どの向きにどれくらいずれたかを出します</p>
         <button class="btn" data-mode="test" disabled>テストを始める</button>
       </div>
@@ -222,9 +233,9 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
   <div class="guide"><ol>
     <li>スマホを<b>顔の前</b>に持つ（顔全体が映る距離・腕は軽く曲げる）</li>
     <li>目は<b>画面のまん中の数字</b>から離さない</li>
-    <li>「みぎ」などの声のあと、音に合わせて<b>頭とスマホをいっしょに</b>往復（<b>高い音＝真ん中・低い音＝向けた先</b>）</li>
+    <li>「みぎ」などの声のあと、<b>頭とスマホをいっしょに</b>往復。トレーニングは<b>「いち、に、さん…」の声</b>で1秒ずつ数えます（選んだ秒数で向けた先に着き、同じ秒数で戻る）。テストは<b>高い音＝真ん中・低い音＝向けた先</b></li>
     <li>顔がカメラの真ん中から動かないように。スマホだけ・頭だけが先に行くと「ずれ」になります</li>
-  </ol><p style="margin-top:6px">トレーニングでは、円の中の点が<b>目と目の間</b>の位置です。円は3段で、内側から 緑＝3°未満・黄＝6°未満・外側の赤い帯＝6°以上（仮の線引き）。点が数字の後ろに隠れていれば、ずれていません。</p></div>
+  </ol><p style="margin-top:6px">トレーニングでは、<b>鼻の頭</b>の位置を、ふんわりした光で出します。円は3段で、内側から 緑＝3°未満・黄＝6°未満・外側の赤い帯＝6°以上（仮の線引き）。光が数字に重なっていれば、ずれていません。</p></div>
   <h4>記録</h4>
   <button class="menuLink" id="mHist">これまでの記録</button>
   <h4>音声</h4>
@@ -418,8 +429,8 @@ function loop() {
       let hp = null; const M = r.facialTransformationMatrixes && r.facialTransformationMatrixes[0];
       if (M && M.data) { const m = M.data; hp = { rot: Math.atan2(m[2], m[10]) * 180 / Math.PI, up: -Math.atan2(m[6], m[10]) * 180 / Math.PI }; }
       if (TEST && window.__hpFake) hp = window.__hpFake(t, hp);   // 試し用（?test=1 のときだけ）
-      // 目と目の間の点（168）の画面上の位置。右＝本人の右目の外へ向かう向き（33−263）、上＝あご→おでこ（152→10）。長さの物差し＝両目の外の端の間
-      { const g = pts[168], d = dist(pts[33], pts[263]), rx = pts[33].x - pts[263].x, ry = pts[33].y - pts[263].y, ux = pts[10].x - pts[152].x, uy = pts[10].y - pts[152].y, rn = Math.hypot(rx, ry), un = Math.hypot(ux, uy);
+      // 鼻の頭（1）の画面上の位置（2026-10-18 目と目の間 168 → 鼻の頭に戻した）。右＝本人の右目の外へ向かう向き（33−263）、上＝あご→おでこ（152→10）。長さの物差し＝両目の外の端の間
+      { const g = pts[1], d = dist(pts[33], pts[263]), rx = pts[33].x - pts[263].x, ry = pts[33].y - pts[263].y, ux = pts[10].x - pts[152].x, uy = pts[10].y - pts[152].y, rn = Math.hypot(rx, ry), un = Math.hypot(ux, uy);
         lastGl = { x: g.x, y: g.y, d, rx: rx / rn, ry: ry / rn, ux: ux / un, uy: uy / un };
         if (TEST && window.__glFake) lastGl = window.__glFake(t, lastGl); }   // 試し用（?test=1 のときだけ）
       last = pts; lastBs = bs; lastHp = hp;
@@ -498,7 +509,7 @@ const vTap = () => {
 function voiceBtn() { $('bVoice').textContent = VOICE ? '🔊 音声オン' : '🔇 音声オフ'; }
 $('bVoice').onclick = () => { VOICE = !VOICE; localStorage.setItem(VOICE_KEY, VOICE ? 'on' : 'off'); voiceBtn(); if (!VOICE) { try { speechSynthesis.cancel(); } catch (e) {} VA.pause(); } };
 voiceBtn(); try { speechSynthesis.onvoiceschanged = () => { jaV = null; }; } catch (e) {}
-function dark(on) { $('stage').classList.toggle('dark', on); $('sMain').classList.toggle('dark', on); }
+function dark(on, face = false) { $('stage').classList.toggle('dark', on && !face); $('stage').classList.toggle('face', on && face); $('sMain').classList.toggle('dark', on); }
 function btn(label, fn, cls = '') { const b = document.createElement('button'); b.textContent = label; b.className = cls; b.onclick = fn; $('btns').appendChild(b); return b; }
 const clearBtns = () => { $('btns').innerHTML = ''; $('result').innerHTML = ''; };
 function fail(again, why) {
@@ -513,6 +524,12 @@ function beep(f = 880, ms = 90, vol = 0.22) {
   try { const a = AC.a; if (!a) return; const o = a.createOscillator(), g = a.createGain();
     o.frequency.value = f; g.gain.value = vol; o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime + ms / 1000); } catch (e) {}
 }
+// 数える声は前もって WebAudio に読み込む（ずれずに鳴らすため。音声の案内をオフにしても数える声は鳴る＝ペースの合図なので）
+const CNT = {};
+async function countLoad() { if (!AC.a || !VMAP) return; for (let n = 1; n <= 5; n++) { const f = VMAP[String(n)]; if (!f || CNT[n]) continue;
+  try { CNT[n] = await AC.a.decodeAudioData(await (await fetch('voice/' + f)).arrayBuffer()); } catch (e) {} } }
+function count(n) { const b = CNT[n]; if (!b || !AC.a) { beep(n === 1 ? 990 : 770, 70, 0.2); return; }
+  try { const s = AC.a.createBufferSource(), g = AC.a.createGain(); g.gain.value = 1.0; s.buffer = b; s.connect(g); g.connect(AC.a.destination); s.start(); } catch (e) {} }
 function endBeep() { try { navigator.vibrate && navigator.vibrate([200, 80, 200]); } catch (e) {} beep(1000, 250, 0.25); }
 
 // ── 向き。右・左は画面を見ている本人の右・左。DV：x ＋＝右、y ＋＝上
@@ -525,9 +542,9 @@ const unitV = k => { const [u, v] = DV[k], n = Math.hypot(u, v); return [u / n, 
 
 // ════ 決まり（しきい値はすべて仮。宮崎さんが決めたら書き換える）
 const VC = { ok: 3, warn: 6, range: 9 };   // 度：緑＝ok 未満・黄＝warn 未満・赤＝それ以上。range＝トレーニングの円の端（3段目＝赤の帯の外の縁）
-const SPEEDS = { slow: [3.0, 'ゆっくり'], mid: [2.0, 'ふつう'], fast: [1.2, 'はやい'] };   // 1往復の秒
+const SPEEDS = { slow: [3.0, 'ゆっくり'], mid: [2.0, 'ふつう'], fast: [1.2, 'はやい'], p1: [2, '片道1秒'], p2: [4, '片道2秒'], p3: [6, '片道3秒'], p4: [8, '片道4秒'], p5: [10, '片道5秒'] };   // 1往復の秒。p1〜p5＝トレーニング（向けるのに◯秒・戻すのに◯秒。2026-10-18）。slow〜fast は前の記録を読むため・mid はテスト
 const SETS = { lr: ['R', 'L'], ud: ['U', 'D'], diag: ['UR', 'DL', 'UL', 'DR'], all: ['R', 'L', 'U', 'D', 'UR', 'DL', 'UL', 'DR'] };
-const SETN = { lr: '左右', ud: '上下', diag: '斜め', all: '全部' };
+const SETN = { lr: '左右', ud: '上下', diag: '斜め', all: '全部' }, SETK = ['lr', 'ud', 'diag'];
 const TEST_DIRS = SETS.all, TEST_REPS = 3, TEST_SPEED = 'mid', TRAIN_REPS = 5;
 const MOVE_MIN = 8;   // 度：ジャイロで測った1往復の動きがこれより小さければ「動きが小さい」と出す（仮）
 
@@ -538,14 +555,15 @@ function fixOn(on) { $('fix').style.display = on ? 'block' : 'none'; }
 const HUD = 300;
 function hudOn(on) { $('hud').style.display = on ? 'block' : 'none'; $('hudNum').style.display = on ? 'block' : 'none';
   for (const [id, v] of [['hudZ1', VC.ok], ['hudZ2', VC.warn]]) { const s = (HUD - 10) * v / VC.range; $(id).style.width = $(id).style.height = s + 'px'; } }
-// 目と目の間の点が、楽にしたときの位置からどれだけ動いたか → 度（目安）。両目の外の端の間＝約9cm、その点から首の回る軸まで＝約10cm として、頭を何度回した分の動きかに直す
-const GL_EYE_CM = 9, GL_ARM_CM = 10;
+// 鼻の頭が、楽にしたときの位置からどれだけ動いたか → 度（目安）。両目の外の端の間＝約9cm、鼻の頭から首の回る軸まで＝約12cm として、頭を何度回した分の動きかに直す
+const GL_EYE_CM = 9, GL_ARM_CM = 12;
 function glOff(g, b) {
   if (!g || !b) return null; const vx = g.x - b.x, vy = g.y - b.y, k = GL_EYE_CM / b.d;
   const r = (vx * b.rx + vy * b.ry) * k, u = (vx * b.ux + vy * b.uy) * k, a = c => Math.atan(c / GL_ARM_CM) * 180 / Math.PI;
   return { dR: a(r), dU: a(u) };
 }
 const colOf = m => m < VC.ok ? '#5ad18b' : m < VC.warn ? '#ffd166' : '#ff6b5a';
+const glow = c => { const n = parseInt(c.slice(1), 16), v = `${n >> 16},${n >> 8 & 255},${n & 255}`; return `radial-gradient(circle,rgba(${v},.75) 0%,rgba(${v},.4) 28%,rgba(${v},0) 70%)`; };
 function drawLive() {
   const L = LIVE, hud = $('hud'), dot = $('hudDot'), num = $('hudNum');
   if (!L.base) return;   // 楽にしたときの向きを取っている間は何も出さない
@@ -553,10 +571,10 @@ function drawLive() {
   if (!o) { L.miss = (L.miss || 0) + 1; if (L.miss > 6) { hud.style.borderColor = '#ff6b5a'; dot.style.display = 'none'; num.textContent = '顔が外れています'; num.style.color = '#ff6b5a'; } return; }
   L.miss = 0; dot.style.display = '';
   const { dR, dU } = o;
-  L.sx = L.sx == null ? dR : L.sx * 0.5 + dR * 0.5; L.sy = L.sy == null ? dU : L.sy * 0.5 + dU * 0.5;   // 読み取りの細かい揺れをならす
-  const m = Math.hypot(L.sx, L.sy), k = Math.min(1, VC.range / Math.max(m, 1e-6)), R = HUD / 2 - 5 - 13;
+  L.sx = L.sx == null ? dR : L.sx * 0.78 + dR * 0.22; L.sy = L.sy == null ? dU : L.sy * 0.78 + dU * 0.22;   // 読み取りの細かい揺れを強めにならす（光がちらつかないように）
+  const m = Math.hypot(L.sx, L.sy), k = Math.min(1, VC.range / Math.max(m, 1e-6)), R = HUD / 2 - 5;
   const x = L.sx * k / VC.range * R, y = -L.sy * k / VC.range * R, c = colOf(m);
-  dot.style.transform = `translate(${x}px,${y}px)`; dot.style.background = c; hud.style.borderColor = m >= VC.warn ? '#ff6b5a' : 'rgba(255,107,90,.55)';
+  dot.style.transform = `translate(${x}px,${y}px)`; dot.style.background = glow(c); hud.style.borderColor = m >= VC.warn ? '#ff6b5a' : 'rgba(255,107,90,.55)';
   num.textContent = `ずれ ${m.toFixed(1)}°`; num.style.color = c;
 }
 // 見つめる数字は1.5秒ごとに変える（目を本当に数字に置いておくため）
@@ -624,7 +642,7 @@ function demoVorc(c) {
     // 見つめる数字
     x.fillStyle = '#fff'; x.beginPath(); x.arc(ph.x, ph.y - 52, 13, 0, 7); x.fill(); x.fillStyle = '#000'; x.font = 'bold 17px sans-serif'; x.textAlign = 'center'; x.fillText('5', ph.x, ph.y - 46);
     // 文字
-    x.fillStyle = '#ffcc00'; x.font = 'bold 24px sans-serif'; x.fillText(bad ? '頭だけ先に行くと…' : '頭とスマホをいっしょに', cx, 30);
+    x.fillStyle = '#d8bd84'; x.font = 'bold 24px sans-serif'; x.fillText(bad ? '頭だけ先に行くと…' : '頭とスマホをいっしょに', cx, 30);
     x.fillStyle = col; x.font = 'bold 22px sans-serif'; x.fillText(bad ? (m < 6 ? '' : 'ずれ！') : 'ずれない ✓', cx, 330);
     x.fillStyle = 'rgba(255,255,255,.85)'; x.font = 'bold 20px sans-serif'; x.textAlign = 'left'; x.fillText(`${ARW[k]} ${DJ[k]}`, 14, 330);
     requestAnimationFrame(fr);
@@ -633,10 +651,10 @@ function demoVorc(c) {
 
 // ════ 1セット（1つの向き）を測る
 // 流れ：楽にして1.2秒（このときの頭の向きを「ずれ0」にする）→ 向きを声で言う → 低い音2つで構え → 高い音（真ん中）・低い音（向けた先）で reps 往復
-// ずれ＝目と目の間の点が、最初の楽にしたときの位置から動いた分（度に直した目安）。トレーニングでは円と数字でその場に出す。テストも同じ測り方
+// ずれ＝鼻の頭が、最初の楽にしたときの位置から動いた分（度に直した目安）。トレーニングでは円と数字でその場に出す。テストも同じ測り方
 async function runSet(k, T, reps, live) {
   const my = tok;
-  SETON = true; dark(true); fixOn(true); fixRoll(true); hudOn(!!live); LIVE = live ? { base: null } : null;
+  SETON = true; dark(true, !!live); fixOn(true); fixRoll(true); hudOn(!!live); LIVE = live ? { base: null } : null;
   if (live) { $('hud').style.borderColor = '#556'; $('hudDot').style.display = 'none'; $('hudNum').textContent = ''; }
   cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}`, 'thin top', DJ[k]);   // 向きは字と声で（目を数字から離さなくていいように）
   // 楽にしたときの頭の向き
@@ -652,16 +670,25 @@ async function runSet(k, T, reps, live) {
   const base = { rot: med(B.map(b => b.rot)), up: med(B.map(b => b.up)), gl: { x: mg('x'), y: mg('y'), d: mg('d'), rx: mg('rx'), ry: mg('ry'), ux: mg('ux'), uy: mg('uy') } };
   if (LIVE) LIVE.base = base;
   await voiceQuiet(1800); if (my !== tok) return null;
-  for (let i = 0; i < 2; i++) { beep(520, 70, 0.18); await sleep(T * 500); if (my !== tok) return null; }   // 構え（低い音2つ）
+  for (let i = 0; i < 2; i++) { beep(520, 70, 0.18); await sleep(live ? 1000 : T * 500); if (my !== tok) return null; }   // 構え（低い音2つ）
   rec = []; const t0 = performance.now(), D = T * 1000;
   const until = async ms => { while (my === tok && performance.now() - t0 < ms) await sleep(Math.min(16, ms - (performance.now() - t0))); };
-  for (let c = 0; c < reps; c++) {
-    beep(1320, 90); await until(c * D + D / 2); if (my !== tok) return null;   // 高い音＝真ん中から出る
-    beep(660, 90); await until((c + 1) * D); if (my !== tok) return null;      // 低い音＝向けた先から戻る
+  const sec = Math.round(T / 2);
+  if (live && sec >= 1 && Math.abs(T / 2 - sec) < 1e-6) {   // トレーニング：出る合図の高い音のあと、1秒ごとに「いち、に…」。sec で向けた先に着き、戻りも「いち…」と数えて sec で真ん中
+    beep(1320, 90);   // 出る合図は最初の1回だけ。あとは数える声だけで往復を続ける（戻りの最後の数＝真ん中＝次の出発）
+    for (let c = 0; c < reps; c++) {
+      for (let j = 1; j <= sec * 2; j++) { await until(c * D + j * 1000); if (my !== tok) return null; count(j <= sec ? j : j - sec); }
+    }
+    await sleep(250); beep(1320, 90);
+  } else {
+    for (let c = 0; c < reps; c++) {
+      beep(1320, 90); await until(c * D + D / 2); if (my !== tok) return null;   // 高い音＝真ん中から出る
+      beep(660, 90); await until((c + 1) * D); if (my !== tok) return null;      // 低い音＝向けた先から戻る
+    }
+    beep(1320, 90);
   }
-  beep(1320, 90);
   const fr = rec; rec = null; LIVE = null; SETON = false;
-  return analyzeSet(k, fr, base, t0, T, reps, true);   // 両モードとも目と目の間の点で測る（2026-10-18 そろえた）
+  return analyzeSet(k, fr, base, t0, T, reps, true);   // 両モードとも鼻の頭で測る（2026-10-18 そろえた）
 }
 // 1セットの読み。本人の右・上が＋。along＝動いている向きに沿った成分（＋＝頭が先に行く＝スマホが遅れる・−＝スマホが先に行く）、cross＝動かす向きと直角にそれた分
 function analyzeSet(k, fr, base, t0, T, reps, byGl = false) {
@@ -694,20 +721,23 @@ function analyzeSet(k, fr, base, t0, T, reps, byGl = false) {
 }
 
 // ════ トレーニング・テストの流れ
-let CFG = { set: localStorage.getItem('vorcSet') || 'lr', speed: localStorage.getItem('vorcSpeed') || 'mid' };
+const lsJ = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch (e) { return d; } };
+let CFG = { sets: lsJ('vorcSets', ['lr']).filter(k => SETK.includes(k)), speed: localStorage.getItem('vorcPace') || 'p3', reps: localStorage.getItem('vorcReps') || '3' };
+if (!CFG.sets.length) CFG.sets = ['lr']; if (!SPEEDS[CFG.speed]) CFG.speed = 'p3';
+const setsName = () => CFG.sets.length === 3 ? '全部' : CFG.sets.map(k => SETN[k]).join('・');
 let MODE = 'train', NSTEP = 2;
-function planOf(mode) { return mode === 'test' ? { dirs: TEST_DIRS, T: SPEEDS[TEST_SPEED][0], speed: TEST_SPEED, reps: TEST_REPS } : { dirs: SETS[CFG.set], T: SPEEDS[CFG.speed][0], speed: CFG.speed, reps: TRAIN_REPS }; }
-const INTRO_TRAIN = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>点は目と目の間の位置です。緑の円の中にあればOK、外の赤い帯に行くほど大きくずれています。音に合わせて往復：高い音で真ん中、低い音で向けた先</small>';
+function planOf(mode) { return mode === 'test' ? { dirs: TEST_DIRS, T: SPEEDS[TEST_SPEED][0], speed: TEST_SPEED, reps: TEST_REPS } : { dirs: SETK.filter(k => CFG.sets.includes(k)).flatMap(k => SETS[k]), T: SPEEDS[CFG.speed][0], speed: CFG.speed, reps: +CFG.reps || TRAIN_REPS }; }
+const INTRO_TRAIN = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>光は鼻の頭の位置です。緑の円の中にあればOK、外の赤い帯に行くほど大きくずれています。高い音で出て、いち、に、さんと数える声に合わせて向け、同じだけ数えて戻ります</small>';
 const INTRO_TEST = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>8つの向きを3往復ずつ。結果は最後に出ます。音に合わせて往復：高い音で真ん中、低い音で向けた先</small>';
 function stepIntro() {
   const P_ = planOf(MODE);
-  show(1, NSTEP, MODE === 'test' ? 'テスト' : `トレーニング（${SETN[CFG.set]}・${SPEEDS[CFG.speed][1]}）`);
+  show(1, NSTEP, MODE === 'test' ? 'テスト' : `トレーニング（${setsName()}・${SPEEDS[CFG.speed][1]}・${P_.reps}往復）`);
   cue('<canvas id="demoC" width="440" height="340"></canvas>' + (MODE === 'test' ? INTRO_TEST : INTRO_TRAIN), 'top fit', MODE === 'test' ? INTRO_TEST : INTRO_TRAIN);
   demoVorc($('demoC'));
   btn('始める', () => runSession(P_));
 }
 async function runSession(P_) {
-  const my = tok; clearBtns(); audioStart();
+  const my = tok; clearBtns(); audioStart(); countLoad();
   await voiceQuiet(); if (my !== tok) return;
   let w0 = performance.now(); while (!last && performance.now() - w0 < 5000) await sleep(100);
   if (!last) return fail(stepIntro, '顔が見つかりませんでした');
@@ -761,16 +791,16 @@ function runHTML(r) {
   if (!r.sets) return '<div class="res">この記録には結果がありません。</div>';
   const S = r.sum, P_ = r.plan;
   const pr = (p, a, b) => p ? `${DJ[a]} ${p[a]}° ／ ${DJ[b]} ${p[b]}°（差 ${Math.abs(p.diff)}°${Math.abs(p.diff) >= 2 ? `・${DJ[p.diff > 0 ? a : b]}が大きい` : ''}）` : '';
-  return `<p class="resHead">${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${SPEEDS[P_.speed][1]}・1往復${P_.T}秒×${P_.reps}）</p><div class="res">
+  return `<p class="resHead">${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${(SPEEDS[P_.speed] || ['', ''])[1]}・1往復${P_.T}秒×${P_.reps}）</p><div class="res">
     全体のずれの平均 <b>${S.mean ?? '—'}°</b>・ずれ ${VC.ok}° 未満の時間 <b>${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}</b><br>いちばんずれた向き <b>${S.worst ? DJ[S.worst] : '—'}</b>
     ${S.lr ? `<br>左右：${pr(S.lr, 'R', 'L')}` : ''}${S.ud ? `<br>上下：${pr(S.ud, 'U', 'D')}` : ''}
     ${radarSVG(r.sets)}${r.sets.map(setRow).join('<br>')}
-    <br><span class="small">ずれ＝目と目の間の点が、楽にしたときの位置から動いた分を、頭を何度回した分かに直した値（度・目安。両目の外の端の間≒9cm、その点から首の回る軸≒10cm として計算）。トレーニングと同じ測り方。最大は大きい方から5%の所。「スマホが遅れる」＝頭が先に行っている。色の線引き（緑 ${VC.ok}° 未満・黄 ${VC.warn}° 未満）は仮で、どこからを問題とするかはまだ決めていない${S.lost.length ? `<br><span style="color:#ff8a65">※顔が外れて読めなかった向き：${S.lost.map(k => DJ[k]).join('・')}</span>` : ''}${S.small.length ? `<br><span style="color:#ff8a65">※動きが小さかった向き（${MOVE_MIN}° 未満）：${S.small.map(k => DJ[k]).join('・')}。動かさなければずれも出ないので、楽に向けられる所まで動かしてください</span>` : ''}</span></div>`;
+    <br><span class="small">ずれ＝鼻の頭が、楽にしたときの位置から動いた分を、頭を何度回した分かに直した値（度・目安。両目の外の端の間≒9cm、鼻の頭から首の回る軸≒12cm として計算）。トレーニングと同じ測り方。最大は大きい方から5%の所。「スマホが遅れる」＝頭が先に行っている。色の線引き（緑 ${VC.ok}° 未満・黄 ${VC.warn}° 未満）は仮で、どこからを問題とするかはまだ決めていない${S.lost.length ? `<br><span style="color:#ff8a65">※顔が外れて読めなかった向き：${S.lost.map(k => DJ[k]).join('・')}</span>` : ''}${S.small.length ? `<br><span style="color:#ff8a65">※動きが小さかった向き（${MOVE_MIN}° 未満）：${S.small.map(k => DJ[k]).join('・')}。動かさなければずれも出ないので、楽に向けられる所まで動かしてください</span>` : ''}</span></div>`;
 }
 function runText(r) {
   if (!r.sets) return '';
   const S = r.sum;
-  return [`VORC トレーニング｜FNT の記録 ${when(r.started)}・${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${SPEEDS[r.plan.speed][1]}・1往復${r.plan.T}秒×${r.plan.reps}）`,
+  return [`VORC トレーニング｜FNT の記録 ${when(r.started)}・${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${(SPEEDS[r.plan.speed] || ['', ''])[1]}・1往復${r.plan.T}秒×${r.plan.reps}）`,
     `全体の平均 ${S.mean ?? '—'}°・${VC.ok}°未満 ${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}・いちばんずれた向き ${S.worst ? DJ[S.worst] : '—'}`,
     r.sets.map(s => s.err ? `${DJ[s.k]} 読めず` : `${DJ[s.k]} 平均${s.mean}°・最大${s.p95}°${alongWord(s.along) ? '・' + alongWord(s.along) : ''}${s.move != null ? `・動き${s.move}°` : ''}`).join('／')].join('\n');
 }
@@ -814,8 +844,14 @@ function goHome() { leaveStage(); screen('sHome'); }
 $('bQuit').onclick = () => goHome();
 
 // トップの選び（向き・速さ）。端末に覚える
-function paintChips() { document.querySelectorAll('[data-cfg]').forEach(g => g.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.v === CFG[g.dataset.cfg]))); }
-document.querySelectorAll('[data-cfg]').forEach(g => g.querySelectorAll('.chip').forEach(c => { c.onclick = () => { CFG[g.dataset.cfg] = c.dataset.v; localStorage.setItem(g.dataset.cfg === 'set' ? 'vorcSet' : 'vorcSpeed', c.dataset.v); paintChips(); }; }));
+const LSK = { speed: 'vorcPace', reps: 'vorcReps' };
+function paintChips() { document.querySelectorAll('[data-cfg]').forEach(g => g.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.v === CFG[g.dataset.cfg])));
+  document.querySelectorAll('[data-multi]').forEach(g => g.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', CFG.sets.includes(c.dataset.v)))); }
+document.querySelectorAll('[data-cfg]').forEach(g => g.querySelectorAll('.chip').forEach(c => { c.onclick = () => { CFG[g.dataset.cfg] = c.dataset.v; localStorage.setItem(LSK[g.dataset.cfg], c.dataset.v); paintChips(); }; }));
+// 向きは複数選べる（2026-10-18 宮崎さん「1つずつだけじゃなくて、複数選択して一緒にトレーニング」）。最後の1つは外せない
+document.querySelectorAll('[data-multi]').forEach(g => g.querySelectorAll('.chip').forEach(c => { c.onclick = () => { const v = c.dataset.v, on = CFG.sets.includes(v);
+  if (on && CFG.sets.length === 1) return toast('向きを1つ以上選んでください');
+  CFG.sets = on ? CFG.sets.filter(k => k !== v) : SETK.filter(k => k === v || CFG.sets.includes(k)); localStorage.setItem('vorcSets', JSON.stringify(CFG.sets)); paintChips(); }; }));
 paintChips();
 
 async function begin(mode) {
@@ -864,7 +900,7 @@ function setVH() { document.documentElement.style.setProperty('--vh', (innerHeig
 setVH(); addEventListener('resize', setVH);
 screen('sHome');
 
-if (TEST) window.__vorc = { get RUN() { return RUN; }, get tok() { return tok; }, begin, analyzeSet, summarize, runHTML, runsAll, last: () => last, hp: () => lastHp };
+if (TEST) window.__vorc = { get RUN() { return RUN; }, get tok() { return tok; }, begin, analyzeSet, summarize, runHTML, runsAll, last: () => last, hp: () => lastHp, cnt: () => Object.keys(CNT).length };
 
 // ── Service Worker（Network First）。新しい版に切り替わったら読み込み直す
 if ('serviceWorker' in navigator && !TEST) {
