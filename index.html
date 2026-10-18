@@ -156,6 +156,9 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 #hudZ1{border:2px solid rgba(90,209,139,.85)}#hudZ2{border:2px solid rgba(255,209,102,.8)}
 #hud .d{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:radial-gradient(circle,rgba(90,209,139,.75) 0%,rgba(90,209,139,.4) 28%,rgba(90,209,139,0) 70%);mix-blend-mode:screen;transition:background .3s}
 #fix.sm{width:22px;height:22px;margin:-11px 0 0 -11px;font-size:14px;line-height:22px}
+#fix.dotT{width:12px;height:12px;margin:-6px 0 0 -6px;box-shadow:0 0 0 2px rgba(0,0,0,.65)}
+#skipHint{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);font-size:12px;letter-spacing:.12em;color:rgba(216,189,132,.75);white-space:nowrap;pointer-events:none;z-index:9;opacity:0;transition:opacity .3s}
+#skipHint.on{opacity:1}
 #hudNum{position:absolute;left:50%;top:calc(50% + 162px);transform:translateX(-50%);font-size:24px;font-weight:800;white-space:nowrap;display:none;z-index:6;pointer-events:none;text-shadow:0 2px 6px #000}
 </style>
 </head>
@@ -191,7 +194,9 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
         <div class="opt">ペース <i>（向けるのに◯秒・戻すのに◯秒）</i></div>
         <div class="chips" data-cfg="speed"><button class="chip" data-v="p1">1秒</button><button class="chip" data-v="p2">2秒</button><button class="chip" data-v="p3">3秒</button><button class="chip" data-v="p4">4秒</button><button class="chip" data-v="p5">5秒</button></div>
         <div class="opt">1つの向きの往復</div>
-        <div class="chips" data-cfg="reps"><button class="chip" data-v="3">3回</button><button class="chip" data-v="5">5回</button><button class="chip" data-v="10">10回</button></div>
+        <div class="chips" data-cfg="reps"><button class="chip" data-v="1">1回</button><button class="chip" data-v="2">2回</button><button class="chip" data-v="3">3回</button><button class="chip" data-v="5">5回</button><button class="chip" data-v="10">10回</button></div>
+        <div class="opt">見つめる印</div>
+        <div class="chips" data-cfg="target"><button class="chip" data-v="num">変わる数字</button><button class="chip" data-v="dot">まん中の点</button></div>
         <button class="btn" data-mode="train" disabled style="margin-top:12px">トレーニングを始める</button>
       </div>
       <div class="card">
@@ -258,6 +263,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
   </div>
   <div id="hud"><div class="zone" id="hudZ2"></div><div class="zone" id="hudZ1"></div><div class="d" id="hudDot"></div></div>
   <div id="fix">5</div>
+  <div id="skipHint">画面をタップで説明をとばす</div>
   <div id="hudNum"></div>
   <div id="top"><div class="steps" id="steps"></div><div id="title"></div></div>
   <div id="cue"></div>
@@ -504,11 +510,16 @@ function vplay(src) {
   vPend = null; VA.pause(); VA.muted = false; VA.src = src;
   VA.play().catch(e => { if (e && e.name === 'NotAllowedError') vPend = src; });
 }
-const vTap = () => {
+const vTap = e => {
+  // 説明の途中でタップしたら声を止めて先へ（2026-10-18 宮崎さん「説明の途中でもタップするとスキップできるように」）。止められて鳴らなかった声（vPend）は、止めずに流す
+  if (!vPend && VOICE && ((!VA.paused && !VA.ended) || (window.speechSynthesis && speechSynthesis.speaking))) { VA.pause(); try { speechSynthesis.cancel(); } catch (_) {} $('skipHint').classList.remove('on'); }
   try { if (AC.a && AC.a.state !== 'running') AC.a.resume(); } catch (e) {}
   if (vPend && VOICE) { const s = vPend; vPend = null; VA.src = s; VA.play().catch(() => {}); }
 };
 ['pointerdown', 'touchend', 'click'].forEach(k => addEventListener(k, vTap, true));
+// 長い説明（4秒より長い声）が鳴っている間だけ「とばせる」と小さく出す
+VA.addEventListener('playing', () => { if (VA.duration > 4 && !$('sMain').classList.contains('hide')) $('skipHint').classList.add('on'); });
+for (const k of ['pause', 'ended', 'emptied']) VA.addEventListener(k, () => $('skipHint').classList.remove('on'));
 function voiceBtn() { $('bVoice').textContent = VOICE ? '🔊 音声オン' : '🔇 音声オフ'; }
 $('bVoice').onclick = () => { VOICE = !VOICE; localStorage.setItem(VOICE_KEY, VOICE ? 'on' : 'off'); voiceBtn(); if (!VOICE) { try { speechSynthesis.cancel(); } catch (e) {} VA.pause(); } };
 voiceBtn(); try { speechSynthesis.onvoiceschanged = () => { jaV = null; }; } catch (e) {}
@@ -680,7 +691,7 @@ function demoVorc(c) {
 // ずれ＝目と目の間の点が、最初の楽にしたときの位置から動いた分（度に直した目安）。トレーニングでは円と数字でその場に出す。テストも同じ測り方
 async function runSet(k, T, reps, live) {
   const my = tok;
-  SETON = true; dark(true, !!live); fixOn(true); $('fix').classList.toggle('sm', !!live); fixRoll(true); hudOn(!!live); LIVE = live ? { base: null } : null;
+  SETON = true; dark(true, !!live); fixOn(true); const dotT = !!live && CFG.target === 'dot'; $('fix').classList.toggle('sm', !!live); $('fix').classList.toggle('dotT', dotT); $('fix').textContent = dotT ? '' : '5'; fixRoll(!dotT); hudOn(!!live); LIVE = live ? { base: null } : null;
   if (live) { $('hud').style.borderColor = '#556'; $('hudDot').style.display = 'none'; $('hudNum').textContent = ''; }
   cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}`, 'thin top', DJ[k]);   // 向きは字と声で（目を数字から離さなくていいように）
   // 楽にしたときの頭の向き
@@ -748,17 +759,19 @@ function analyzeSet(k, fr, base, t0, T, reps, byGl = false) {
 
 // ════ トレーニング・テストの流れ
 const lsJ = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch (e) { return d; } };
-let CFG = { sets: lsJ('vorcSets', ['lr']).filter(k => SETK.includes(k)), speed: localStorage.getItem('vorcPace') || 'p3', reps: localStorage.getItem('vorcReps') || '3' };
+let CFG = { sets: lsJ('vorcSets', ['lr']).filter(k => SETK.includes(k)), speed: localStorage.getItem('vorcPace') || 'p3', reps: localStorage.getItem('vorcReps') || '3', target: localStorage.getItem('vorcTarget') === 'dot' ? 'dot' : 'num' };
 if (!CFG.sets.length) CFG.sets = ['lr']; if (!SPEEDS[CFG.speed]) CFG.speed = 'p3';
 const setsName = () => CFG.sets.length === 3 ? '全部' : CFG.sets.map(k => SETN[k]).join('・');
 let MODE = 'train', NSTEP = 2;
 function planOf(mode) { return mode === 'test' ? { dirs: TEST_DIRS, T: SPEEDS[TEST_SPEED][0], speed: TEST_SPEED, reps: TEST_REPS } : { dirs: SETK.filter(k => CFG.sets.includes(k)).flatMap(k => SETS[k]), T: SPEEDS[CFG.speed][0], speed: CFG.speed, reps: +CFG.reps || TRAIN_REPS }; }
+const INTRO_TRAIN_DOT = '目は<b>真ん中の点</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>光は目と目の間の位置です。緑の円の中にあればOK、外の赤い帯に行くほど大きくずれています。高い音で出て、いち、に、さんと数える声に合わせて向け、同じだけ数えて戻ります</small>';
 const INTRO_TRAIN = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>光は目と目の間の位置です。緑の円の中にあればOK、外の赤い帯に行くほど大きくずれています。高い音で出て、いち、に、さんと数える声に合わせて向け、同じだけ数えて戻ります</small>';
 const INTRO_TEST = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>8つの向きを3往復ずつ。結果は最後に出ます。音に合わせて往復：高い音で真ん中、低い音で向けた先</small>';
+const INTRO_NOW = () => MODE === 'test' ? INTRO_TEST : CFG.target === 'dot' ? INTRO_TRAIN_DOT : INTRO_TRAIN;
 function stepIntro() {
   const P_ = planOf(MODE);
   show(1, NSTEP, MODE === 'test' ? 'テスト' : `トレーニング（${setsName()}・${SPEEDS[CFG.speed][1]}・${P_.reps}往復）`);
-  cue('<canvas id="demoC" width="440" height="340"></canvas>' + (MODE === 'test' ? INTRO_TEST : INTRO_TRAIN), 'top fit', MODE === 'test' ? INTRO_TEST : INTRO_TRAIN);
+  cue('<canvas id="demoC" width="440" height="340"></canvas>' + INTRO_NOW(), 'top fit', INTRO_NOW());
   demoVorc($('demoC'));
   btn('始める', () => runSession(P_));
 }
@@ -870,7 +883,7 @@ function goHome() { leaveStage(); screen('sHome'); }
 $('bQuit').onclick = () => goHome();
 
 // トップの選び（向き・速さ）。端末に覚える
-const LSK = { speed: 'vorcPace', reps: 'vorcReps' };
+const LSK = { speed: 'vorcPace', reps: 'vorcReps', target: 'vorcTarget' };
 function paintChips() { document.querySelectorAll('[data-cfg]').forEach(g => g.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.v === CFG[g.dataset.cfg])));
   document.querySelectorAll('[data-multi]').forEach(g => g.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', CFG.sets.includes(c.dataset.v)))); }
 document.querySelectorAll('[data-cfg]').forEach(g => g.querySelectorAll('.chip').forEach(c => { c.onclick = () => { CFG[g.dataset.cfg] = c.dataset.v; localStorage.setItem(LSK[g.dataset.cfg], c.dataset.v); paintChips(); }; }));
@@ -926,7 +939,7 @@ function setVH() { document.documentElement.style.setProperty('--vh', (innerHeig
 setVH(); addEventListener('resize', setVH);
 screen('sHome');
 
-if (TEST) window.__vorc = { get RUN() { return RUN; }, get tok() { return tok; }, begin, analyzeSet, summarize, runHTML, runsAll, last: () => last, hp: () => lastHp, cnt: () => Object.keys(CNT).length };
+if (TEST) window.__vorc = { get RUN() { return RUN; }, get tok() { return tok; }, begin, analyzeSet, summarize, runHTML, runsAll, last: () => last, hp: () => lastHp, cnt: () => Object.keys(CNT).length, va: () => ({ paused: VA.paused, t: Math.round(VA.currentTime * 10) / 10, dur: VA.duration, src: VA.src.split("/").pop() }) };
 
 // ── Service Worker（Network First）。新しい版に切り替わったら読み込み直す
 if ('serviceWorker' in navigator && !TEST) {
