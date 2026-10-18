@@ -142,10 +142,12 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 #camFix{position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:60;width:auto;font-size:17px;font-weight:700;border:0;border-radius:12px;padding:14px;color:#fff;background:#e8590c}
 /* 見つめる数字（画面のまん中）と、トレーニングのときのずれの円 */
 #fix{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:#fff;color:#000;font-size:32px;font-weight:800;line-height:56px;text-align:center;display:none;z-index:7;pointer-events:none}
-#hud{position:absolute;left:50%;top:50%;width:220px;height:220px;margin:-110px 0 0 -110px;border-radius:50%;border:5px solid #5ad18b;display:none;z-index:6;pointer-events:none;transition:border-color .15s}
-#hud .zone{position:absolute;left:50%;top:50%;border-radius:50%;border:2px dashed rgba(255,255,255,.35);transform:translate(-50%,-50%)}
+#hud{position:absolute;left:50%;top:50%;width:300px;height:300px;margin:-150px 0 0 -150px;border-radius:50%;border:5px solid #ff6b5a;display:none;z-index:6;pointer-events:none;transition:border-color .15s;
+  background:radial-gradient(circle closest-side,rgba(90,209,139,.22) 0 33.3%,rgba(255,209,102,.20) 33.3% 66.6%,rgba(255,107,90,.22) 66.6% 83%,rgba(255,107,90,.40) 83% 100%)}
+#hud .zone{position:absolute;left:50%;top:50%;border-radius:50%;transform:translate(-50%,-50%)}
+#hudZ1{border:3px solid #5ad18b}#hudZ2{border:3px solid #ffd166}
 #hud .d{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:#5ad18b;box-shadow:0 0 10px rgba(0,0,0,.6)}
-#hudNum{position:absolute;left:50%;top:calc(50% + 124px);transform:translateX(-50%);font-size:24px;font-weight:800;white-space:nowrap;display:none;z-index:6;pointer-events:none;text-shadow:0 2px 6px #000}
+#hudNum{position:absolute;left:50%;top:calc(50% + 162px);transform:translateX(-50%);font-size:24px;font-weight:800;white-space:nowrap;display:none;z-index:6;pointer-events:none;text-shadow:0 2px 6px #000}
 </style>
 </head>
 <body>
@@ -222,7 +224,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
     <li>目は<b>画面のまん中の数字</b>から離さない</li>
     <li>「みぎ」などの声のあと、音に合わせて<b>頭とスマホをいっしょに</b>往復（<b>高い音＝真ん中・低い音＝向けた先</b>）</li>
     <li>顔がカメラの真ん中から動かないように。スマホだけ・頭だけが先に行くと「ずれ」になります</li>
-  </ol><p style="margin-top:6px">トレーニングでは、円の中の点が<b>数字の後ろに隠れていれば</b>ずれていません。円の色は 緑＝3°未満・黄＝6°未満・赤＝それ以上（仮の線引き）。</p></div>
+  </ol><p style="margin-top:6px">トレーニングでは、円の中の点が<b>目と目の間</b>の位置です。円は3段で、内側から 緑＝3°未満・黄＝6°未満・外側の赤い帯＝6°以上（仮の線引き）。点が数字の後ろに隠れていれば、ずれていません。</p></div>
   <h4>記録</h4>
   <button class="menuLink" id="mHist">これまでの記録</button>
   <h4>音声</h4>
@@ -242,7 +244,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
     <video id="video" playsinline muted autoplay></video>
     <canvas id="overlay"></canvas>
   </div>
-  <div id="hud"><div class="zone" id="hudZone"></div><div class="d" id="hudDot"></div></div>
+  <div id="hud"><div class="zone" id="hudZ2"></div><div class="zone" id="hudZ1"></div><div class="d" id="hudDot"></div></div>
   <div id="fix">5</div>
   <div id="hudNum"></div>
   <div id="top"><div class="steps" id="steps"></div><div id="title"></div></div>
@@ -262,7 +264,7 @@ const MODEL = 'https://storage.googleapis.com/mediapipe-models/face_landmarker/f
 
 const $ = id => document.getElementById(id);
 const video = $('video'), ov = $('overlay'), oc = ov.getContext('2d');
-let lm = null, last = null, lastBs = null, lastHp = null, lastT = -1, rec = null;   // last = 直近の顔の点（画素）・lastHp = 頭の向き
+let lm = null, last = null, lastBs = null, lastHp = null, lastGl = null, lastT = -1, rec = null;   // last = 直近の顔の点（画素）・lastHp = 頭の向き
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 // 試し用の入口：?test=1 のときだけ、頭の向きを外から差し替えられる（作り物のカメラで最後まで通すため）。ふだんは何もしない
 const TEST = /[?&]test=1(&|$)/.test(location.search);
@@ -416,13 +418,17 @@ function loop() {
       let hp = null; const M = r.facialTransformationMatrixes && r.facialTransformationMatrixes[0];
       if (M && M.data) { const m = M.data; hp = { rot: Math.atan2(m[2], m[10]) * 180 / Math.PI, up: -Math.atan2(m[6], m[10]) * 180 / Math.PI }; }
       if (TEST && window.__hpFake) hp = window.__hpFake(t, hp);   // 試し用（?test=1 のときだけ）
+      // 目と目の間の点（168）の画面上の位置。右＝本人の右目の外へ向かう向き（33−263）、上＝あご→おでこ（152→10）。長さの物差し＝両目の外の端の間
+      { const g = pts[168], d = dist(pts[33], pts[263]), rx = pts[33].x - pts[263].x, ry = pts[33].y - pts[263].y, ux = pts[10].x - pts[152].x, uy = pts[10].y - pts[152].y, rn = Math.hypot(rx, ry), un = Math.hypot(ux, uy);
+        lastGl = { x: g.x, y: g.y, d, rx: rx / rn, ry: ry / rn, ux: ux / un, uy: uy / un };
+        if (TEST && window.__glFake) lastGl = window.__glFake(t, lastGl); }   // 試し用（?test=1 のときだけ）
       last = pts; lastBs = bs; lastHp = hp;
-      if (rec) { const d = dist(pts[P.eyeOut[0]], pts[P.eyeOut[1]]); rec.push({ t, hp, n: { x: pts[1].x / d, y: pts[1].y / d }, gz: gazeOf(bs), gy: gyroLive() ? { x: GY.x, y: GY.y, r: GY.rate } : null }); }
+      if (rec) { const d = dist(pts[P.eyeOut[0]], pts[P.eyeOut[1]]); rec.push({ t, hp, gl: lastGl, n: { x: pts[1].x / d, y: pts[1].y / d }, gz: gazeOf(bs), gy: gyroLive() ? { x: GY.x, y: GY.y, r: GY.rate } : null }); }
       if (!SETON) {   // 測っている間は顔の点を描かない（目を数字から離さないように）
         const u = OVU; oc.fillStyle = 'rgba(90,209,139,.9)';
         for (let i = 0; i < pts.length; i += 2) oc.fillRect(pts[i].x - 1.3 * u, pts[i].y - 1.3 * u, 2.6 * u, 2.6 * u);
       }
-    } else { last = null; lastBs = null; lastHp = null; if (rec) rec.push({ t, miss: true, gy: gyroLive() ? { x: GY.x, y: GY.y, r: GY.rate } : null }); }
+    } else { last = null; lastBs = null; lastHp = null; lastGl = null; if (rec) rec.push({ t, miss: true, gy: gyroLive() ? { x: GY.x, y: GY.y, r: GY.rate } : null }); }
     if (LIVE) drawLive();
     window.__frames = (window.__frames || 0) + 1;
     window.__faceSeen = (window.__faceSeen || 0) + (last ? 1 : 0);
@@ -518,7 +524,7 @@ const dirOf = (x, y) => DIRS[((Math.round(Math.atan2(y, x) * 180 / Math.PI / 45)
 const unitV = k => { const [u, v] = DV[k], n = Math.hypot(u, v); return [u / n, v / n]; };
 
 // ════ 決まり（しきい値はすべて仮。宮崎さんが決めたら書き換える）
-const VC = { ok: 3, warn: 6, range: 10 };   // 度：緑＝ok 未満・黄＝warn 未満・赤＝それ以上。range＝トレーニングの円の端
+const VC = { ok: 3, warn: 6, range: 9 };   // 度：緑＝ok 未満・黄＝warn 未満・赤＝それ以上。range＝トレーニングの円の端（3段目＝赤の帯の外の縁）
 const SPEEDS = { slow: [3.0, 'ゆっくり'], mid: [2.0, 'ふつう'], fast: [1.2, 'はやい'] };   // 1往復の秒
 const SETS = { lr: ['R', 'L'], ud: ['U', 'D'], diag: ['UR', 'DL', 'UL', 'DR'], all: ['R', 'L', 'U', 'D', 'UR', 'DL', 'UL', 'DR'] };
 const SETN = { lr: '左右', ud: '上下', diag: '斜め', all: '全部' };
@@ -529,19 +535,28 @@ const MOVE_MIN = 8;   // 度：ジャイロで測った1往復の動きがこれ
 // 円のまん中＝ずれていない。点は「スマホから見て頭がどちらへずれているか」（本人の右へずれた＝点が右）。点が数字の後ろに隠れていればOK
 let LIVE = null, SETON = false;
 function fixOn(on) { $('fix').style.display = on ? 'block' : 'none'; }
+const HUD = 300;
 function hudOn(on) { $('hud').style.display = on ? 'block' : 'none'; $('hudNum').style.display = on ? 'block' : 'none';
-  const z = $('hudZone'), s = 220 * VC.ok / VC.range; z.style.width = z.style.height = s + 'px'; }
+  for (const [id, v] of [['hudZ1', VC.ok], ['hudZ2', VC.warn]]) { const s = (HUD - 10) * v / VC.range; $(id).style.width = $(id).style.height = s + 'px'; } }
+// 目と目の間の点が、楽にしたときの位置からどれだけ動いたか → 度（目安）。両目の外の端の間＝約9cm、その点から首の回る軸まで＝約10cm として、頭を何度回した分の動きかに直す
+const GL_EYE_CM = 9, GL_ARM_CM = 10;
+function glOff(g, b) {
+  if (!g || !b) return null; const vx = g.x - b.x, vy = g.y - b.y, k = GL_EYE_CM / b.d;
+  const r = (vx * b.rx + vy * b.ry) * k, u = (vx * b.ux + vy * b.uy) * k, a = c => Math.atan(c / GL_ARM_CM) * 180 / Math.PI;
+  return { dR: a(r), dU: a(u) };
+}
 const colOf = m => m < VC.ok ? '#5ad18b' : m < VC.warn ? '#ffd166' : '#ff6b5a';
 function drawLive() {
   const L = LIVE, hud = $('hud'), dot = $('hudDot'), num = $('hudNum');
   if (!L.base) return;   // 楽にしたときの向きを取っている間は何も出さない
-  if (!lastHp) { L.miss = (L.miss || 0) + 1; if (L.miss > 6) { hud.style.borderColor = '#ff6b5a'; dot.style.display = 'none'; num.textContent = '顔が外れています'; num.style.color = '#ff6b5a'; } return; }
+  const o = glOff(lastGl, L.base.gl);
+  if (!o) { L.miss = (L.miss || 0) + 1; if (L.miss > 6) { hud.style.borderColor = '#ff6b5a'; dot.style.display = 'none'; num.textContent = '顔が外れています'; num.style.color = '#ff6b5a'; } return; }
   L.miss = 0; dot.style.display = '';
-  const dR = lastHp.rot - L.base.rot, dU = lastHp.up - L.base.up;
+  const { dR, dU } = o;
   L.sx = L.sx == null ? dR : L.sx * 0.5 + dR * 0.5; L.sy = L.sy == null ? dU : L.sy * 0.5 + dU * 0.5;   // 読み取りの細かい揺れをならす
-  const m = Math.hypot(L.sx, L.sy), k = Math.min(1, VC.range / Math.max(m, 1e-6)), R = 110 - 13;
+  const m = Math.hypot(L.sx, L.sy), k = Math.min(1, VC.range / Math.max(m, 1e-6)), R = HUD / 2 - 5 - 13;
   const x = L.sx * k / VC.range * R, y = -L.sy * k / VC.range * R, c = colOf(m);
-  dot.style.transform = `translate(${x}px,${y}px)`; dot.style.background = c; hud.style.borderColor = c;
+  dot.style.transform = `translate(${x}px,${y}px)`; dot.style.background = c; hud.style.borderColor = m >= VC.warn ? '#ff6b5a' : 'rgba(255,107,90,.55)';
   num.textContent = `ずれ ${m.toFixed(1)}°`; num.style.color = c;
 }
 // 見つめる数字は1.5秒ごとに変える（目を本当に数字に置いておくため）
@@ -627,13 +642,14 @@ async function runSet(k, T, reps, live) {
   // 楽にしたときの頭の向き
   const t1 = performance.now(), B = [];
   while (my === tok && performance.now() - t1 < 8000) {
-    if (lastHp) B.push({ t: performance.now(), rot: lastHp.rot, up: lastHp.up }); else B.length = 0;
+    if (lastHp && lastGl) B.push({ t: performance.now(), rot: lastHp.rot, up: lastHp.up, gl: lastGl }); else B.length = 0;
     if (B.length && B[B.length - 1].t - B[0].t >= 1200) break;
     await sleep(16);
   }
   if (my !== tok) return null;
   if (B.length < 5) return { k, err: 'face' };
-  const base = { rot: med(B.map(b => b.rot)), up: med(B.map(b => b.up)) };
+  const mg = key => med(B.map(b => b.gl[key]));
+  const base = { rot: med(B.map(b => b.rot)), up: med(B.map(b => b.up)), gl: { x: mg('x'), y: mg('y'), d: mg('d'), rx: mg('rx'), ry: mg('ry'), ux: mg('ux'), uy: mg('uy') } };
   if (LIVE) LIVE.base = base;
   await voiceQuiet(1800); if (my !== tok) return null;
   for (let i = 0; i < 2; i++) { beep(520, 70, 0.18); await sleep(T * 500); if (my !== tok) return null; }   // 構え（低い音2つ）
@@ -645,19 +661,19 @@ async function runSet(k, T, reps, live) {
   }
   beep(1320, 90);
   const fr = rec; rec = null; LIVE = null; SETON = false;
-  return analyzeSet(k, fr, base, t0, T, reps);
+  return analyzeSet(k, fr, base, t0, T, reps, live);
 }
 // 1セットの読み。本人の右・上が＋。along＝動いている向きに沿った成分（＋＝頭が先に行く＝スマホが遅れる・−＝スマホが先に行く）、cross＝動かす向きと直角にそれた分
-function analyzeSet(k, fr, base, t0, T, reps) {
+function analyzeSet(k, fr, base, t0, T, reps, byGl = false) {
   const D = T * 1000, [ux, uy] = unitV(k), px_ = -uy, py_ = ux;
   const S = fr.filter(s => s.t >= t0 && s.t < t0 + reps * D);
-  const ok = S.filter(s => !s.miss && s.hp);
+  const ok = S.filter(s => !s.miss && s.hp && (!byGl || s.gl));
   const miss = S.length ? (S.length - ok.length) / S.length : 1;
   if (ok.length < 10) return { k, err: 'face', miss: r3(miss) };
   const n0 = ok.slice(0, 5).map(s => s.n), nx0 = med(n0.map(n => n.x)), ny0 = med(n0.map(n => n.y));
   const g0 = ok.filter(s => s.gz).slice(0, 5), gx0 = med(g0.map(s => s.gz.x)), gy0 = med(g0.map(s => s.gz.y));
   const E = ok.map(s => {
-    const dR = s.hp.rot - base.rot, dU = s.hp.up - base.up, ph = ((s.t - t0) / D) % 1, sg = ph < 0.5 ? 1 : -1;
+    const o = byGl ? glOff(s.gl, base.gl) : { dR: s.hp.rot - base.rot, dU: s.hp.up - base.up }, dR = o.dR, dU = o.dU, ph = ((s.t - t0) / D) % 1, sg = ph < 0.5 ? 1 : -1;
     return { dR, dU, m: Math.hypot(dR, dU), along: (dR * ux + dU * uy) * sg, cross: dR * px_ + dU * py_, pos: Math.hypot(-(s.n.x - nx0), -(s.n.y - ny0)), gz: s.gz && Number.isFinite(gx0) ? Math.hypot(s.gz.x - gx0, s.gz.y - gy0) : NaN };
   });
   const M = E.map(e => e.m), worst = E.reduce((a, b) => b.m > a.m ? b : a, E[0]);
@@ -674,14 +690,14 @@ function analyzeSet(k, fr, base, t0, T, reps) {
   return { k, n: E.length, miss: r3(miss), mean: r1(mean(M)), p95: r1(qtl(M, 0.95)), inOk: r3(M.filter(m => m < VC.ok).length / M.length),
     along: r1(mean(E.map(e => e.along))), cross: r1(cr), crossDir: Math.abs(cr) >= 1 ? dirOf(px_ * cr, py_ * cr) : null,
     worstDir: worst.m >= 1 ? dirOf(worst.dR, worst.dU) : null, pos: r3(mean(E.map(e => e.pos))), gaze: r3(mean(E.map(e => e.gz).filter(Number.isFinite))),
-    move, speed, base: { rot: r1(base.rot), up: r1(base.up) } };
+    move, speed, by: byGl ? 'glabella' : 'headpose', base: { rot: r1(base.rot), up: r1(base.up) } };
 }
 
 // ════ トレーニング・テストの流れ
 let CFG = { set: localStorage.getItem('vorcSet') || 'lr', speed: localStorage.getItem('vorcSpeed') || 'mid' };
 let MODE = 'train', NSTEP = 2;
 function planOf(mode) { return mode === 'test' ? { dirs: TEST_DIRS, T: SPEEDS[TEST_SPEED][0], speed: TEST_SPEED, reps: TEST_REPS } : { dirs: SETS[CFG.set], T: SPEEDS[CFG.speed][0], speed: CFG.speed, reps: TRAIN_REPS }; }
-const INTRO_TRAIN = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>円の中の点が数字の後ろに隠れていれば、ずれていません。音に合わせて往復：高い音で真ん中、低い音で向けた先</small>';
+const INTRO_TRAIN = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>点は目と目の間の位置です。緑の円の中にあればOK、外の赤い帯に行くほど大きくずれています。音に合わせて往復：高い音で真ん中、低い音で向けた先</small>';
 const INTRO_TEST = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>8つの向きを3往復ずつ。結果は最後に出ます。音に合わせて往復：高い音で真ん中、低い音で向けた先</small>';
 function stepIntro() {
   const P_ = planOf(MODE);
