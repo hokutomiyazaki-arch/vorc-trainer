@@ -155,7 +155,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 #hud .zone{position:absolute;left:50%;top:50%;border-radius:50%;transform:translate(-50%,-50%)}
 #hudZ1{border:2px solid rgba(90,209,139,.85)}#hudZ2{border:2px solid rgba(255,209,102,.8)}
 #hud .d{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:radial-gradient(circle,rgba(90,209,139,.75) 0%,rgba(90,209,139,.4) 28%,rgba(90,209,139,0) 70%);mix-blend-mode:screen;transition:background .3s}
-#fix.sm{width:30px;height:30px;margin:-15px 0 0 -15px;font-size:19px;line-height:30px}
+#fix.sm{width:22px;height:22px;margin:-11px 0 0 -11px;font-size:14px;line-height:22px}
 #hudNum{position:absolute;left:50%;top:calc(50% + 162px);transform:translateX(-50%);font-size:24px;font-weight:800;white-space:nowrap;display:none;z-index:6;pointer-events:none;text-shadow:0 2px 6px #000}
 </style>
 </head>
@@ -434,7 +434,7 @@ function loop() {
       // 目と目の間の点＝両目の外と内の端（33・133・362・263）のまん中。正面を見たときの黒目と黒目のまん中にあたる。
       // 黒目そのものは視線で動くので使わない（2026-10-18 宮崎さん「見る方向を変えるだけで点が動く」→ 鼻の頭からこの点に変えた）。右＝本人の右目の外へ向かう向き（33−263）、上＝あご→おでこ（152→10）。長さの物差し＝両目の外の端の間
       { const g = EYEMID(pts), d = dist(pts[33], pts[263]), rx = pts[33].x - pts[263].x, ry = pts[33].y - pts[263].y, ux = pts[10].x - pts[152].x, uy = pts[10].y - pts[152].y, rn = Math.hypot(rx, ry), un = Math.hypot(ux, uy);
-        lastGl = { x: g.x, y: g.y, d, rx: rx / rn, ry: ry / rn, ux: ux / un, uy: uy / un };
+        lastGl = { x: g.x, y: g.y, d, fw: dist(pts[234], pts[454]), fh: dist(pts[10], pts[152]), rx: rx / rn, ry: ry / rn, ux: ux / un, uy: uy / un };
         if (TEST && window.__glFake) lastGl = window.__glFake(t, lastGl); }   // 試し用（?test=1 のときだけ）
       last = pts; lastBs = bs; lastHp = hp;
       if (rec) { const d = dist(pts[P.eyeOut[0]], pts[P.eyeOut[1]]); rec.push({ t, hp, gl: lastGl, n: { x: pts[1].x / d, y: pts[1].y / d }, gz: gazeOf(bs), gy: gyroLive() ? { x: GY.x, y: GY.y, r: GY.rate } : null }); }
@@ -560,14 +560,16 @@ function hudOn(on) { $('hud').style.display = on ? 'block' : 'none'; $('hudNum')
   for (const [id, v] of [['hudZ1', VC.ok], ['hudZ2', VC.warn]]) { const s = (HUD - 10) * v / VC.range; $(id).style.width = $(id).style.height = s + 'px'; } }
 // 目と目の間の点が、楽にしたときの位置からどれだけ動いたか → 度（目安）。両目の外の端の間＝約9cm、その点から首の回る軸まで＝約10cm として、頭を何度回した分の動きかに直す
 const GL_EYE_CM = 9, GL_ARM_CM = 10;
-// トレーニングの映像：楽にしたときの目と目の間の点が画面のまん中に来るよう、映像をずらして大きくする（両目の外の端の間＝画面の幅の8割）。
+// トレーニングの映像：楽にしたときの目と目の間の点が画面のまん中に来るよう、映像をずらして大きくする（両目の外の端の間＝画面の幅の8割まで）。
+// 🔴 ただし顔全体（頬から頬・おでこからあご）が画面に収まる倍率で止める（2026-10-18 8割まで大きくすると顔の上半分しか映らなかった）。止めた分は映像を大きくせず、円の物差しを小さくして合わせる（光は顔の点の本当の位置のまま）
 // 光はその点の本当の位置に重ねて出す（2026-10-18 宮崎さん「顔と完全に一致して画面の中心になるように」）。円の大きさも同じ物差しで決めるので、光が円のどこにあるか＝ずれの度数
-const ZOOM_EYE = 0.8;
+const ZOOM_EYE = 0.8, FACE_W = 0.92, FACE_H = 0.62;   // FACE_H：目の高さが画面のまん中なので、あごまで入るよう高さの6割強に収める
 let VZ = null;   // { s, tx, ty, k0, ox, oy, C }：映像の画素 → 画面の位置
 function zoomOn(b) {
   const W = video.clientWidth, H = video.clientHeight, vw = video.videoWidth, vh = video.videoHeight; if (!vw || !vh || !b) return;
   const k0 = Math.min(W / vw, H / vh), ox = (W - vw * k0) / 2, oy = (H - vh * k0) / 2, C = { x: W / 2, y: H / 2 };
-  const s = clamp(ZOOM_EYE * Math.min(W, H) / (k0 * b.d), 1, 8);
+  const fit = Math.min(FACE_W * W / (k0 * (b.fw || b.d * 1.6)), FACE_H * H / (k0 * (b.fh || b.d * 2)));   // 顔全体が入る倍率
+  const s = clamp(Math.min(ZOOM_EYE * Math.min(W, H) / (k0 * b.d), fit), 1, 8);
   const q = { x: ox + b.x * k0, y: oy + b.y * k0 };
   VZ = { s, tx: s * (q.x - C.x), ty: -s * (q.y - C.y), k0, ox, oy, C };   // 左右は鏡の向きなので符号が逆
   video.style.transform = `translate(${VZ.tx}px,${VZ.ty}px) scale(${s}) scaleX(-1)`;
@@ -691,7 +693,7 @@ async function runSet(k, T, reps, live) {
   if (my !== tok) return null;
   if (B.length < 5) return { k, err: 'face' };
   const mg = key => med(B.map(b => b.gl[key]));
-  const base = { rot: med(B.map(b => b.rot)), up: med(B.map(b => b.up)), gl: { x: mg('x'), y: mg('y'), d: mg('d'), rx: mg('rx'), ry: mg('ry'), ux: mg('ux'), uy: mg('uy') } };
+  const base = { rot: med(B.map(b => b.rot)), up: med(B.map(b => b.up)), gl: { x: mg('x'), y: mg('y'), d: mg('d'), fw: mg('fw'), fh: mg('fh'), rx: mg('rx'), ry: mg('ry'), ux: mg('ux'), uy: mg('uy') } };
   if (LIVE) { LIVE.base = base; zoomOn(base.gl); }
   await voiceQuiet(1800); if (my !== tok) return null;
   for (let i = 0; i < 2; i++) { beep(520, 70, 0.18); await sleep(live ? 1000 : T * 500); if (my !== tok) return null; }   // 構え（低い音2つ）
