@@ -343,15 +343,15 @@ function frame(pts, E = P.eyeOut) {
 
 // ── スマホの回転（ジャイロ）。頭とスマホをどれだけ動かしたかを測る（顔がカメラに対して動かないのが正解なので、カメラだけでは「動かしていない」と区別できない）
 // 向き（符号）は端末で違うことがあるので使わず、大きさだけを使う。iPhone は押したボタンの中で許可を取る
-let GY = { on: false, t: 0, x: 0, y: 0, rate: 0, n: 0 };
+let GY = { on: false, t: 0, x: 0, y: 0, z: 0, rate: 0, n: 0 };
 async function motionStart() {
   if (GY.on) return true;
   try { if (typeof DeviceMotionEvent === 'undefined') return false; if (typeof DeviceMotionEvent.requestPermission === 'function' && (await DeviceMotionEvent.requestPermission()) !== 'granted') return false; } catch (e) { return false; }
   addEventListener('devicemotion', e => {
     const r = e.rotationRate; if (!r || !Number.isFinite(r.beta) || !Number.isFinite(r.gamma)) return;
     const now = performance.now();
-    if (GY.t) { const dt = Math.min(0.1, (now - GY.t) / 1000); GY.x += r.beta * dt; GY.y += r.gamma * dt; }   // beta＝画面の横の軸（上下に向ける）・gamma＝縦の軸（左右に向ける）。度/秒
-    GY.t = now; GY.rate = Math.hypot(r.beta, r.gamma); GY.n++;
+    if (GY.t) { const dt = Math.min(0.1, (now - GY.t) / 1000); GY.x += r.beta * dt; GY.y += r.gamma * dt; GY.z += (Number.isFinite(r.alpha) ? r.alpha : 0) * dt; }   // beta＝画面の横の軸（上下に向ける）・gamma＝縦の軸（左右に向ける）。度/秒
+    GY.t = now; GY.rate = Math.hypot(r.beta, r.gamma, Number.isFinite(r.alpha) ? r.alpha : 0); GY.n++;
   });
   GY.on = true; return true;
 }
@@ -454,12 +454,12 @@ function loop() {
         lastGl = { x: g.x, y: g.y, d, fw: dist(pts[234], pts[454]), fh: dist(pts[10], pts[152]), rx: rx / rn, ry: ry / rn, ux: ux / un, uy: uy / un };
         if (TEST && window.__glFake) lastGl = window.__glFake(t, lastGl); }   // 試し用（?test=1 のときだけ）
       last = pts; lastBs = bs; lastHp = hp;
-      if (rec) { const d = dist(pts[P.eyeOut[0]], pts[P.eyeOut[1]]); rec.push({ t, hp, gl: lastGl, n: { x: pts[1].x / d, y: pts[1].y / d }, gz: gazeOf(bs), gy: gyroLive() ? { x: GY.x, y: GY.y, r: GY.rate } : null }); }
+      if (rec) { const d = dist(pts[P.eyeOut[0]], pts[P.eyeOut[1]]); rec.push({ t, hp, gl: lastGl, n: { x: pts[1].x / d, y: pts[1].y / d }, gz: gazeOf(bs), gy: gyroLive() ? { x: GY.x, y: GY.y, z: GY.z, r: GY.rate } : null }); }
       if (!SETON) {   // 測っている間は顔の点を描かない（目を数字から離さないように）
         const u = OVU; oc.fillStyle = 'rgba(90,209,139,.9)';
         for (let i = 0; i < pts.length; i += 2) oc.fillRect(pts[i].x - 1.3 * u, pts[i].y - 1.3 * u, 2.6 * u, 2.6 * u);
       }
-    } else { last = null; lastBs = null; lastHp = null; lastGl = null; if (rec) rec.push({ t, miss: true, gy: gyroLive() ? { x: GY.x, y: GY.y, r: GY.rate } : null }); }
+    } else { last = null; lastBs = null; lastHp = null; lastGl = null; if (rec) rec.push({ t, miss: true, gy: gyroLive() ? { x: GY.x, y: GY.y, z: GY.z, r: GY.rate } : null }); }
     if (LIVE) drawLive();
     window.__frames = (window.__frames || 0) + 1;
     window.__faceSeen = (window.__faceSeen || 0) + (last ? 1 : 0);
@@ -575,23 +575,32 @@ const TEST_DIRS = SETS.all, TEST_REPS = 3, TEST_SPEED = 'slow',   // テスト�
 const MOVE_MIN = 8;   // 度：ジャイロで測った1往復の動きがこれより小さければ「動きが小さい」と出す（仮）
 // 残りの往復を「あと3往復」→2→1と出す（2026-10-20 宮崎さん「何回やればいいのかわからない」「ジャイロで3から数え始めて、1往復したら3、2、1とカウントダウン」）
 // テストは見つめる数字のすぐ下、トレーニングは向きの字の下（真ん中は円と光があるため）
-// ジャイロで「真ん中から REP_OUT° 以上出て → いちばん遠くまでの35%以内に戻った」を1往復と数える（1往復の音の半分より短い往復は数えない＝行き過ぎの揺り戻しを数えないため）
-// 🔴 ジャイロが無い・1往復目を音の1往復のうちに数えられなかったときは、その向きの残りは音の1往復ごとに減らす（2026-10-20 実機で「3から減らないまま次の向きへ進む」と言われた。ジャイロが動いていても数えられないと、ずっと3のままになっていた）
-const REP_OUT = 8;
+// 🔴 テストは音のテンポをやめ、自分のタイミングで3往復→ジャイロで数えて、数え終わったら次の向きへ（2026-10-20 宮崎さん「リズムに合わせてやるのはやめよう。自分のタイミングで3往復動いて、それをジャイロで計測」）
+// 数え方：ジャイロの回転を3軸とも足し合わせた「向き」を積み、最初に REP_OUT° 出た向きをその向きの軸にする。
+//   軸に沿って「出た分（いちばん遠くまで）」の半分以上戻ったら1往復。次の1往復は、戻りきった所から REP_OUT° 以上また出てから数える。
+//   真ん中の位置を固定しないので、ジャイロの積み残し（ドリフト）や、真ん中まで戻りきらないくせでも止まらない（前の作りは「真ん中の35%以内まで戻る」が条件で、実機で3のまま止まった）
+const REP_OUT = 8, REP_BACK = 0.5, REP_GAP = 350, FREE_HINT = 12000, FREE_MAX = 45000;   // FREE_HINT＝1往復目を数えられないまま12秒で「もう少し大きく」・FREE_MAX＝45秒で数えきれなくても次の向きへ（止まったままにしない）
 function repShow(n, tr) { const e = $('reps'); if (n == null) { e.style.display = 'none'; return; } e.classList.toggle('tr', !!tr); e.style.display = 'block'; e.innerHTML = n > 0 ? `あと<b>${n}</b>往復` : '<b>✓</b>'; }
-function repWatch(reps, D, tr) {
-  const my = tok; let left = reps, a = null, peak = 0, out = false, tL = performance.now(), byTime = false, gyN = 0; repShow(left, tr);
+function repWatch(reps, D, tr, onRep) {
+  const my = tok; let left = reps, a = null, u = null, lo = 0, hi = 0, out = false, tL = 0, byTime = false, gyN = 0, turn = null; const spans = []; let t0 = performance.now(); repShow(left, tr);
   const id = setInterval(() => {
     if (my !== tok) { clearInterval(id); repShow(null); return; }
     if (byTime || !gyroLive() || left <= 0) return;
-    if (!a) a = { x: GY.x, y: GY.y };
-    const d = Math.hypot(GY.x - a.x, GY.y - a.y); peak = Math.max(peak, d);
-    if (!out && d >= REP_OUT) out = true;
-    if (out && d <= Math.max(3, peak * 0.35) && performance.now() - tL >= D * 0.5) { left--; gyN++; repShow(left, tr); peak = 0; out = false; tL = performance.now(); }   // 真ん中（その向きの始めの位置）は動かさない（戻りきる前の点を真ん中にすると、残りの戻りを次の1往復と数えてしまう）
+    const P = [GY.x, GY.y, GY.z], now = performance.now();
+    if (!a) a = P;
+    if (!u) { const v = P.map((p, i) => p - a[i]), n = Math.hypot(...v); if (n < REP_OUT) return; u = v.map(x => x / n); }   // 最初に出た向き＝この向きの軸
+    const s = (P[0] - a[0]) * u[0] + (P[1] - a[1]) * u[1] + (P[2] - a[2]) * u[2];
+    if (!out) { lo = Math.min(lo, s); if (s - lo >= REP_OUT) { out = true; hi = s; } return; }
+    if (s > hi) { hi = s; turn = now; }
+    if (hi - s >= Math.max(REP_OUT, (hi - lo) * REP_BACK) && now - tL >= REP_GAP) {
+      spans.push({ s: t0, turn: turn || now, e: now, amp: r0(hi - lo) }); t0 = now; tL = now; turn = null;
+      left--; gyN++; repShow(left, tr); out = false; lo = s; if (onRep) onRep(left);
+    }
   }, 30);
   return {
+    get left() { return left; },
     tick(c) { if (!byTime && (!gyroLive() || gyN === 0)) byTime = true; if (byTime && left > reps - c) { left = reps - c; repShow(left, tr); } },
-    stop() { clearInterval(id); repShow(null); return { gyN, byTime }; } };
+    stop() { clearInterval(id); repShow(null); return { gyN, byTime, spans }; } };
 }
 
 // ════ トレーニングの円（ずれをその場で見せる）
@@ -725,9 +734,12 @@ async function runSet(k, T, reps, live, first = false) {
   const my = tok;
   SETON = true; dark(true, !!live); fixOn(true); const dotT = !!live && CFG.target === 'dot'; $('fix').classList.toggle('sm', !!live); $('fix').classList.toggle('dotT', dotT); $('fix').textContent = dotT ? '' : '5'; fixRoll(!dotT); hudOn(!!live); LIVE = live ? { base: null } : null;
   if (live) { $('hud').style.borderColor = '#556'; $('hudDot').style.display = 'none'; $('hudNum').textContent = ''; }
-  // 向きは字と声で（目を数字から離さなくていいように）。テストは「どちらへ・何往復・どう動かすか」も言う（2026-10-20 宮崎さん「音に合わせて、右に3回スマホといっしょに、みたいな指示がないと分からない」）。
+  // 向きは字と声で（目を数字から離さなくていいように）。テストは「どちらへ・何往復・どう動かすか」も言う（2026-10-20 宮崎さん「右に3回スマホといっしょに、みたいな指示がないと分からない」）。
   // 動かし方の説明は最初の向きだけ声で言い、2つ目からは「左へ3往復」だけ（8回くり返すと長くなるため。字はいつも出す）
+  // テストは自分のペースで動かし、ジャイロで3往復を数えたら次の向きへ（2026-10-20 宮崎さん「リズムに合わせてやるのはやめよう」）。ジャイロが無い端末（パソコン等）だけ、前の音のテンポで進める
+  const free = !live && gyroLive();
   if (live) cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}`, 'thin top', DJ[k]);
+  else if (free) cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}へ ${reps}往復<small>自分のペースで・スマホといっしょに</small>`, 'thin top', first ? `${DJ[k]}へ${reps}往復。自分のペースで、スマホといっしょに動かします。${reps}往復すると、次の向きに進みます` : `${DJ[k]}へ${reps}往復`);
   else cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}へ ${reps}往復<small>スマホといっしょに・音に合わせて（高い音で出る・低い音で戻る）</small>`, 'thin top', first ? `${DJ[k]}へ${reps}往復。スマホといっしょに、音に合わせて動かします。高い音で出て、低い音で戻ります` : `${DJ[k]}へ${reps}往復`);
   // 楽にしたときの頭の向き
   const t1 = performance.now(), B = [];
@@ -742,6 +754,19 @@ async function runSet(k, T, reps, live, first = false) {
   const base = { rot: med(B.map(b => b.rot)), up: med(B.map(b => b.up)), gl: { x: mg('x'), y: mg('y'), d: mg('d'), fw: mg('fw'), fh: mg('fh'), rx: mg('rx'), ry: mg('ry'), ux: mg('ux'), uy: mg('uy') } };
   if (LIVE) { LIVE.base = base; zoomOn(base.gl); }
   await voiceQuiet(live || !first ? 1800 : 9000); if (my !== tok) return null;
+  if (free) {   // テスト（ジャイロあり）：始めの高い音1つ → 自分のペースで往復。1往復ごとに短い音、3往復目で終わりの音
+    beep(1320, 90); rec = []; const t0 = performance.now();
+    let warned = false;
+    const RW = repWatch(reps, 0, false, n => beep(n > 0 ? 880 : 1320, n > 0 ? 60 : 150, n > 0 ? 0.16 : 0.22));
+    while (my === tok && RW.left > 0 && performance.now() - t0 < FREE_MAX) {
+      if (!warned && RW.left === reps && performance.now() - t0 > FREE_HINT) { warned = true; cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}へ ${reps}往復<small>もう少し大きく、頭とスマホをいっしょに</small>`, 'thin top', ''); }
+      await sleep(30);
+    }
+    if (my !== tok) return null;
+    await sleep(500); const rw = RW.stop(), tEnd = performance.now();
+    const fr = rec; rec = null; SETON = false;
+    return { ...analyzeSet(k, fr, base, t0, T, reps, true, rw.spans, tEnd), repGy: rw.gyN, repByTime: false, free: true, dur: r1((tEnd - t0) / 1000), timeout: rw.gyN < reps };
+  }
   for (let i = 0; i < 2; i++) { beep(520, 70, 0.18); await sleep(live ? 1000 : T * 500); if (my !== tok) return null; }   // 構え（低い音2つ）
   rec = []; const t0 = performance.now(), D = T * 1000;
   const until = async ms => { while (my === tok && performance.now() - t0 < ms) await sleep(Math.min(16, ms - (performance.now() - t0))); };
@@ -768,16 +793,19 @@ async function runSet(k, T, reps, live, first = false) {
   return { ...analyzeSet(k, fr, base, t0, T, reps, true), repGy: rw.gyN, repByTime: rw.byTime };   // repGy＝ジャイロで数えた往復・repByTime＝音で数えた（実機の確かめ用）。両モードとも目と目の間の点で測る（2026-10-18 そろえた）
 }
 // 1セットの読み。本人の右・上が＋。along＝動いている向きに沿った成分（＋＝頭が先に行く＝スマホが遅れる・−＝スマホが先に行く）、cross＝動かす向きと直角にそれた分
-function analyzeSet(k, fr, base, t0, T, reps, byGl = false) {
+// spans＝自分のペースのテスト（ジャイロで数えた1往復ごとの 始め・折り返し・終わり）。あるときは音のテンポの代わりにこれで区切る
+function analyzeSet(k, fr, base, t0, T, reps, byGl = false, spans = null, tEnd = null) {
   const D = T * 1000, [ux, uy] = unitV(k), px_ = -uy, py_ = ux;
-  const S = fr.filter(s => s.t >= t0 && s.t < t0 + reps * D);
+  const FR = spans != null;
+  const S = fr.filter(s => s.t >= t0 && s.t < (FR ? tEnd : t0 + reps * D));
+  const outOf = t => { if (!FR) return ((t - t0) / D) % 1 < 0.5; const sp = spans.find(p => t < p.e); return sp ? t < sp.turn : true; };
   const ok = S.filter(s => !s.miss && s.hp && (!byGl || s.gl));
   const miss = S.length ? (S.length - ok.length) / S.length : 1;
   if (ok.length < 10) return { k, err: 'face', miss: r3(miss) };
   const n0 = ok.slice(0, 5).map(s => s.n), nx0 = med(n0.map(n => n.x)), ny0 = med(n0.map(n => n.y));
   const g0 = ok.filter(s => s.gz).slice(0, 5), gx0 = med(g0.map(s => s.gz.x)), gy0 = med(g0.map(s => s.gz.y));
   const E = ok.map(s => {
-    const o = byGl ? glOff(s.gl, base.gl) : { dR: s.hp.rot - base.rot, dU: s.hp.up - base.up }, dR = o.dR, dU = o.dU, ph = ((s.t - t0) / D) % 1, sg = ph < 0.5 ? 1 : -1;
+    const o = byGl ? glOff(s.gl, base.gl) : { dR: s.hp.rot - base.rot, dU: s.hp.up - base.up }, dR = o.dR, dU = o.dU, sg = outOf(s.t) ? 1 : -1;
     return { dR, dU, m: Math.hypot(dR, dU), along: (dR * ux + dU * uy) * sg, cross: dR * px_ + dU * py_, pos: Math.hypot(-(s.n.x - nx0), -(s.n.y - ny0)), gz: s.gz && Number.isFinite(gx0) ? Math.hypot(s.gz.x - gx0, s.gz.y - gy0) : NaN };
   });
   const M = E.map(e => e.m), worst = E.reduce((a, b) => b.m > a.m ? b : a, E[0]);
@@ -786,8 +814,9 @@ function analyzeSet(k, fr, base, t0, T, reps, byGl = false) {
   const G = S.filter(s => s.gy);
   if (G.length > S.length * 0.5) {
     const A = [], V = [];
-    for (let c = 0; c < reps; c++) { const C = G.filter(s => s.t >= t0 + c * D && s.t < t0 + (c + 1) * D); if (C.length < 4) continue;
-      const a = C[0].gy; A.push(Math.max(...C.map(s => Math.hypot(s.gy.x - a.x, s.gy.y - a.y)))); V.push(Math.max(...C.map(s => s.gy.r))); }
+    const W = FR ? spans.map(p => [p.s, p.e]) : [...Array(reps)].map((_, c) => [t0 + c * D, t0 + (c + 1) * D]);
+    for (const [ws, we] of W) { const C = G.filter(s => s.t >= ws && s.t < we); if (C.length < 4) continue;
+      const a = C[0].gy; A.push(Math.max(...C.map(s => Math.hypot(s.gy.x - a.x, s.gy.y - a.y, (s.gy.z ?? a.z ?? 0) - (a.z ?? 0))))); V.push(Math.max(...C.map(s => s.gy.r))); }
     if (A.length) { move = r0(med(A)); speed = r0(med(V)); }
   }
   const cr = mean(E.map(e => e.cross));
@@ -812,7 +841,7 @@ let MODE = 'train', NSTEP = 2;
 function planOf(mode) { return mode === 'test' ? { dirs: TEST_DIRS, T: SPEEDS[TEST_SPEED][0], speed: TEST_SPEED, reps: TEST_REPS } : { dirs: CFG.dirs.slice(), T: SPEEDS[CFG.speed][0], speed: CFG.speed, reps: +CFG.reps || TRAIN_REPS }; }
 const INTRO_TRAIN_DOT = '目は<b>真ん中の点</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>光は目と目の間の位置です。緑の円の中にあればOK、外の赤い帯に行くほど大きくずれています。高い音で出て、いち、に、さんと数える声に合わせて向け、同じだけ数えて戻ります。残りの往復は向きの字の下に「あと◯往復」と出ます</small>';
 const INTRO_TRAIN = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>光は目と目の間の位置です。緑の円の中にあればOK、外の赤い帯に行くほど大きくずれています。高い音で出て、いち、に、さんと数える声に合わせて向け、同じだけ数えて戻ります。残りの往復は向きの字の下に「あと◯往復」と出ます</small>';
-const INTRO_TEST = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>8つの向きを、1つずつ3往復。向きは声と字で伝えます。音に合わせて、高い音で真ん中から出て、低い音で戻ります。残りの回数は数字の下に「あと3往復」と出ます。結果は最後に出ます</small>';
+const INTRO_TEST = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>8つの向きを、1つずつ3往復。向きは声と字で伝えます。高い音が鳴ったら、自分のペースで動かします。残りの回数は数字の下に「あと3往復」と出て、1往復ごとに減ります。3往復すると次の向きに進みます。結果は最後に出ます</small>';
 const INTRO_NOW = () => MODE === 'test' ? INTRO_TEST : CFG.target === 'dot' ? INTRO_TRAIN_DOT : INTRO_TRAIN;
 function stepIntro() {
   const P_ = planOf(MODE);
@@ -842,7 +871,7 @@ async function runSession(P_) {
     if (my !== tok) return;
   }
   fixRoll(false); fixOn(false); dark(false); endBeep();
-  RUN.plan = { dirs: P_.dirs, T: P_.T, speed: P_.speed, reps: P_.reps }; RUN.sets = out; RUN.sum = summarize(out);
+  RUN.plan = { dirs: P_.dirs, T: P_.T, speed: P_.speed, reps: P_.reps, free: out.some(s => s.free) }; RUN.sets = out; RUN.sum = summarize(out);
   if (!RUN.sum.n) return fail(stepIntro, '顔が見えている時間が短すぎました');
   finish();
 }
@@ -869,14 +898,14 @@ const alongWord = a => !Number.isFinite(a) || Math.abs(a) < 1 ? '' : a > 0 ? `�
 function setRow(s) {
   if (s.err) return `${DJ[s.k]}へ：<span style="color:#ff8a65">顔が外れて読めず</span>`;
   const sub = [alongWord(s.along), s.crossDir ? `${DJ[s.crossDir]}にそれる ${Math.abs(s.cross)}°` : ''].filter(Boolean).join('・');
-  const ex = [s.move != null ? `動かした角度 約${s.move}°` : '', s.miss > 0.05 ? `顔が外れた ${Math.round(s.miss * 100)}%` : ''].filter(Boolean).join('・');
+  const ex = [s.free ? `${s.repGy}往復・${s.dur}秒${s.timeout ? '（数えきれず）' : ''}` : '', s.move != null ? `動かした角度 約${s.move}°` : '', s.miss > 0.05 ? `顔が外れた ${Math.round(s.miss * 100)}%` : ''].filter(Boolean).join('・');
   return `${DJ[s.k]}へ：平均 <b style="color:${colOf(s.mean)}">${s.mean}°</b>・最大 ${s.p95}°${s.worstDir ? `（ずれた向き ${DJ[s.worstDir]}）` : ''}${sub ? `<br><span class="small">　${sub}</span>` : ''}${ex ? `<br><span class="small">　${ex}${s.move != null && s.move < MOVE_MIN ? '<span style="color:#ff8a65">・動きが小さめ</span>' : ''}</span>` : ''}`;
 }
 function runHTML(r) {
   if (!r.sets) return '<div class="res">この記録には結果がありません。</div>';
   const S = r.sum, P_ = r.plan;
   const pr = (p, a, b) => p ? `${DJ[a]} ${p[a]}° ／ ${DJ[b]} ${p[b]}°（差 ${Math.abs(p.diff)}°${Math.abs(p.diff) >= 2 ? `・${DJ[p.diff > 0 ? a : b]}が大きい` : ''}）` : '';
-  return `<p class="resHead">${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${(SPEEDS[P_.speed] || ['', ''])[1]}・1往復${P_.T}秒×${P_.reps}）</p><div class="res">
+  return `<p class="resHead">${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${P_.free ? `自分のペース・${P_.reps}往復` : `${(SPEEDS[P_.speed] || ['', ''])[1]}・1往復${P_.T}秒×${P_.reps}`}）</p><div class="res">
     全体のずれの平均 <b>${S.mean ?? '—'}°</b>・ずれ ${VC.ok}° 未満の時間 <b>${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}</b><br>いちばんずれた向き <b>${S.worst ? DJ[S.worst] : '—'}</b>
     ${S.lr ? `<br>左右：${pr(S.lr, 'R', 'L')}` : ''}${S.ud ? `<br>上下：${pr(S.ud, 'U', 'D')}` : ''}
     ${radarSVG(r.sets)}${r.sets.map(setRow).join('<br>')}
@@ -885,7 +914,7 @@ function runHTML(r) {
 function runText(r) {
   if (!r.sets) return '';
   const S = r.sum;
-  return [`VORC トレーニング｜FNT の記録 ${when(r.started)}・${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${(SPEEDS[r.plan.speed] || ['', ''])[1]}・1往復${r.plan.T}秒×${r.plan.reps}）`,
+  return [`VORC トレーニング｜FNT の記録 ${when(r.started)}・${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${r.plan.free ? `自分のペース・${r.plan.reps}往復` : `${(SPEEDS[r.plan.speed] || ['', ''])[1]}・1往復${r.plan.T}秒×${r.plan.reps}`}）`,
     `全体の平均 ${S.mean ?? '—'}°・${VC.ok}°未満 ${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}・いちばんずれた向き ${S.worst ? DJ[S.worst] : '—'}`,
     r.sets.map(s => s.err ? `${DJ[s.k]} 読めず` : `${DJ[s.k]} 平均${s.mean}°・最大${s.p95}°${alongWord(s.along) ? '・' + alongWord(s.along) : ''}${s.move != null ? `・動き${s.move}°` : ''}`).join('／')].join('\n');
 }
