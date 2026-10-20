@@ -166,6 +166,8 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 #skipHint{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);font-size:12px;letter-spacing:.12em;color:rgba(216,189,132,.75);white-space:nowrap;pointer-events:none;z-index:9;opacity:0;transition:opacity .3s}
 #skipHint.on{opacity:1}
 #hudNum{position:absolute;left:50%;top:calc(50% + 162px);transform:translateX(-50%);font-size:24px;font-weight:800;white-space:nowrap;display:none;z-index:6;pointer-events:none;text-shadow:0 2px 6px #000}
+#reps{position:absolute;left:50%;top:calc(50% + 46px);transform:translateX(-50%);font-size:20px;font-weight:800;color:#d8bd84;white-space:nowrap;display:none;z-index:7;pointer-events:none;text-shadow:0 2px 6px #000}
+#reps b{font-size:56px;line-height:1;margin:0 6px;vertical-align:-6px}
 </style>
 </head>
 <body>
@@ -270,6 +272,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
   </div>
   <div id="hud"><div class="zone" id="hudZ2"></div><div class="zone" id="hudZ1"></div><div class="d" id="hudDot"></div></div>
   <div id="fix">5</div>
+  <div id="reps"></div>
   <div id="skipHint">画面をタップで説明をとばす</div>
   <div id="hudNum"></div>
   <div id="top"><div class="steps" id="steps"></div><div id="title"></div></div>
@@ -567,7 +570,23 @@ const SPEEDS = { slow: [3.0, 'ゆっくり'], mid: [2.0, 'ふつう'], fast: [1.
 const SETS = { lr: ['R', 'L'], ud: ['U', 'D'], diag: ['UR', 'DL', 'UL', 'DR'], all: ['R', 'L', 'U', 'D', 'UR', 'DL', 'UL', 'DR'] };
 const SETN = { lr: '左右', ud: '上下', diag: '斜め', all: '全部' }, SETK = ['lr', 'ud', 'diag'];
 const TEST_DIRS = SETS.all, TEST_REPS = 3, TEST_SPEED = 'mid', TRAIN_REPS = 5;
-const MOVE_MIN = 8;   // 度：ジャイロで測った1往復の動きがこれより小さければ「動きが小さい」と出す（仮）
+const MOVE_MIN = 8;
+// テストの残りの往復を、見つめる数字のすぐ下に「あと3往復」→2→1と出す（2026-10-20 宮崎さん「何回やればいいのかわからない」「ジャイロで3から数え始めて、1往復したら3、2、1とカウントダウン」）
+// ジャイロで「真ん中から REP_OUT° 以上出て → いちばん遠くまでの35%以内に戻った」を1往復と数える（1往復の音の半分より短い往復は数えない＝行き過ぎの揺り戻しを数えないため）。ジャイロが無い端末（パソコンなど）は音の1往復ごとに減らす
+const REP_OUT = 10;
+function repShow(n) { const e = $('reps'); if (n == null) { e.style.display = 'none'; return; } e.style.display = 'block'; e.innerHTML = n > 0 ? `あと<b>${n}</b>往復` : '<b>✓</b>'; }
+function repWatch(reps, D) {
+  const my = tok; let left = reps, a = null, peak = 0, out = false, tL = performance.now(); repShow(left);
+  const id = setInterval(() => {
+    if (my !== tok) { clearInterval(id); repShow(null); return; }
+    if (!gyroLive() || left <= 0) return;
+    if (!a) a = { x: GY.x, y: GY.y };
+    const d = Math.hypot(GY.x - a.x, GY.y - a.y); peak = Math.max(peak, d);
+    if (!out && d >= REP_OUT) out = true;
+    if (out && d <= Math.max(3, peak * 0.35) && performance.now() - tL >= D * 0.5) { left--; repShow(left); peak = 0; out = false; tL = performance.now(); }   // 真ん中（その向きの始めの位置）は動かさない（戻りきる前の点を真ん中にすると、残りの戻りを次の1往復と数えてしまう）
+  }, 30);
+  return { tick(c) { if (!gyroLive() && left > reps - c) { left = reps - c; repShow(left); } }, stop() { clearInterval(id); repShow(null); } };
+}   // 度：ジャイロで測った1往復の動きがこれより小さければ「動きが小さい」と出す（仮）
 
 // ════ トレーニングの円（ずれをその場で見せる）
 // 円のまん中＝ずれていない。点は「スマホから見て頭がどちらへずれているか」（本人の右へずれた＝点が右）。点が数字の後ろに隠れていればOK
@@ -725,11 +744,13 @@ async function runSet(k, T, reps, live) {
     }
     await sleep(250); beep(1320, 90);
   } else {
+    const RW = live ? null : repWatch(reps, D);   // テスト：残りの往復を出す
     for (let c = 0; c < reps; c++) {
       beep(1320, 90); await until(c * D + D / 2); if (my !== tok) return null;   // 高い音＝真ん中から出る
       beep(660, 90); await until((c + 1) * D); if (my !== tok) return null;      // 低い音＝向けた先から戻る
+      if (RW) RW.tick(c + 1);
     }
-    beep(1320, 90);
+    beep(1320, 90); if (RW) { await sleep(300); RW.stop(); }
   }
   const fr = rec; rec = null; LIVE = null; SETON = false; zoomOff();
   return analyzeSet(k, fr, base, t0, T, reps, true);   // 両モードとも目と目の間の点で測る（2026-10-18 そろえた）
@@ -779,7 +800,7 @@ let MODE = 'train', NSTEP = 2;
 function planOf(mode) { return mode === 'test' ? { dirs: TEST_DIRS, T: SPEEDS[TEST_SPEED][0], speed: TEST_SPEED, reps: TEST_REPS } : { dirs: CFG.dirs.slice(), T: SPEEDS[CFG.speed][0], speed: CFG.speed, reps: +CFG.reps || TRAIN_REPS }; }
 const INTRO_TRAIN_DOT = '目は<b>真ん中の点</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>光は目と目の間の位置です。緑の円の中にあればOK、外の赤い帯に行くほど大きくずれています。高い音で出て、いち、に、さんと数える声に合わせて向け、同じだけ数えて戻ります</small>';
 const INTRO_TRAIN = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>光は目と目の間の位置です。緑の円の中にあればOK、外の赤い帯に行くほど大きくずれています。高い音で出て、いち、に、さんと数える声に合わせて向け、同じだけ数えて戻ります</small>';
-const INTRO_TEST = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>8つの向きを3往復ずつ。結果は最後に出ます。音に合わせて往復：高い音で真ん中、低い音で向けた先</small>';
+const INTRO_TEST = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>8つの向きを3往復ずつ。残りの回数は真ん中の数字の下に「あと3往復」と出て、1往復ごとに減ります。結果は最後に出ます。音に合わせて往復：高い音で真ん中、低い音で向けた先</small>';
 const INTRO_NOW = () => MODE === 'test' ? INTRO_TEST : CFG.target === 'dot' ? INTRO_TRAIN_DOT : INTRO_TRAIN;
 function stepIntro() {
   const P_ = planOf(MODE);
