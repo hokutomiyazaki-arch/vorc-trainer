@@ -22,4 +22,5 @@ if git diff --cached --quiet; then echo "足すファイルなし"; else
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" && git push -q && echo "push した"
 fi
-launchctl bootout gui/$(id -u)/$L 2>/dev/null; mkdir -p ~/Library/LaunchAgents/_retired; mv ~/Library/LaunchAgents/$L.plist ~/Library/LaunchAgents/_retired/ 2>/dev/null; echo "自分を外した"
+# 先に plist を退避してから外す（bootout は走っている自分ごと止めるので、後ろに置いた mv が走らず plist が残った 2026-10-22）
+mkdir -p ~/Library/LaunchAgents/_retired; mv ~/Library/LaunchAgents/$L.plist ~/Library/LaunchAgents/_retired/ 2>/dev/null; echo "自分を外した"; launchctl bootout gui/$(id -u)/$L 2>/dev/null
