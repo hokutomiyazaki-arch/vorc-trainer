@@ -839,9 +839,14 @@ function analyzeSet(k, fr, base, t0, T, reps, byGl = false, spans = null, tEnd =
   if (ok.length < 10) return { k, err: 'face', miss: r3(miss) };
   const n0 = ok.slice(0, 5).map(s => s.n), nx0 = med(n0.map(n => n.x)), ny0 = med(n0.map(n => n.y));
   const g0 = ok.filter(s => s.gz).slice(0, 5), gx0 = med(g0.map(s => s.gz.x)), gy0 = med(g0.map(s => s.gz.y));
+  // ゆるめの基準（ふつう）：トレーニングの光と同じに、読み取りの揺れを tau 秒でならし、dead° 未満のずれは数えない。
+  // テストはいつも「ふつう」で取る（2026-10-23 宮崎さん「テストモードもこの緩めの基準に合わせて」）。トレーニングは選んだ光の動きに合わせる
+  const lv = MODE === 'test' ? 'easy' : CFG.level, LVx = LEVELS[lv] || LEVELS.easy; let sx = null, sy = null, tp = null;
+  const soft = (t, x, y) => { if (!LVx.tau) return [x, y]; const a = tp == null ? 1 : 1 - Math.exp(-Math.min(0.2, (t - tp) / 1000) / LVx.tau); tp = t;
+    sx = sx == null ? x : sx + (x - sx) * a; sy = sy == null ? y : sy + (y - sy) * a; const m = Math.hypot(sx, sy), k_ = m > LVx.dead ? (m - LVx.dead) / m : 0; return [sx * k_, sy * k_]; };
   const E = ok.map(s => {
     // byGl（名前は前のまま）＝頭から見た印の向きで取る（2026-10-23〜）。前の「目と目の間の点が画面で動いた分」は gm として記録だけ残す（前の記録と比べるため）
-    const o = byGl ? camOff(s.hp, base) : { dR: s.hp.rot - base.rot, dU: s.hp.up - base.up }, dR = o.dR, dU = o.dU, sg = outOf(s.t) ? 1 : -1, og = s.gl && base.gl ? glOff(s.gl, base.gl) : null;
+    const o = byGl ? camOff(s.hp, base) : { dR: s.hp.rot - base.rot, dU: s.hp.up - base.up }, [dR, dU] = soft(s.t, o.dR, o.dU), sg = outOf(s.t) ? 1 : -1, og = s.gl && base.gl ? glOff(s.gl, base.gl) : null;
     return { dR, dU, gm: og ? Math.hypot(og.dR, og.dU) : NaN, m: Math.hypot(dR, dU), along: (dR * ux + dU * uy) * sg, cross: dR * px_ + dU * py_, pos: Math.hypot(-(s.n.x - nx0), -(s.n.y - ny0)), gz: s.gz && Number.isFinite(gx0) ? Math.hypot(s.gz.x - gx0, s.gz.y - gy0) : NaN };
   });
   const M = E.map(e => e.m), worst = E.reduce((a, b) => b.m > a.m ? b : a, E[0]);
@@ -859,7 +864,7 @@ function analyzeSet(k, fr, base, t0, T, reps, byGl = false, spans = null, tEnd =
   return { k, n: E.length, miss: r3(miss), mean: r1(mean(M)), p95: r1(qtl(M, 0.95)), inOk: r3(M.filter(m => m < VC.ok).length / M.length),
     along: r1(mean(E.map(e => e.along))), cross: r1(cr), crossDir: Math.abs(cr) >= 1 ? dirOf(px_ * cr, py_ * cr) : null,
     worstDir: worst.m >= 1 ? dirOf(worst.dR, worst.dU) : null, pos: r3(mean(E.map(e => e.pos))), gaze: r3(mean(E.map(e => e.gz).filter(Number.isFinite))),
-    move, speed, glMean: r1(mean(E.map(e => e.gm).filter(Number.isFinite))), by: byGl ? 'camdir' : 'headpose', base: { rot: r1(base.rot), up: r1(base.up) } };
+    move, speed, glMean: r1(mean(E.map(e => e.gm).filter(Number.isFinite))), by: byGl ? 'camdir' : 'headpose', level: lv, base: { rot: r1(base.rot), up: r1(base.up) } };
 }
 
 // ════ トレーニング・テストの流れ
@@ -907,7 +912,7 @@ async function runSession(P_) {
     if (my !== tok) return;
   }
   fixRoll(false); fixOn(false); dark(false); endBeep();
-  RUN.plan = { dirs: P_.dirs, T: P_.T, speed: P_.speed, reps: P_.reps, level: MODE === 'train' ? CFG.level : null, free: out.some(s => s.free) }; RUN.sets = out; RUN.sum = summarize(out);
+  RUN.plan = { dirs: P_.dirs, T: P_.T, speed: P_.speed, reps: P_.reps, level: MODE === 'train' ? CFG.level : 'easy', free: out.some(s => s.free) }; RUN.sets = out; RUN.sum = summarize(out);
   if (!RUN.sum.n) return fail(stepIntro, '顔が見えている時間が短すぎました');
   finish();
 }
@@ -973,7 +978,7 @@ function runHTML(r) {
     <div class="res">全体のずれの平均 <b>${S.mean ?? '—'}°</b>・ずれが ${VC.ok}° 未満だった時間 <b>${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}</b>
     ${radarSVG(r.sets)}<p class="small" style="text-align:center;margin:0">線が長い向きほど、その向きに動かしたときのずれが大きい</p></div>
     <p class="resHead" style="font-size:16px">向きごとの結果</p>${sets.map(setRow).join('')}
-    <p class="small" style="margin-top:8px">「大きいとき」＝ずれが大きかった方から5%の所。測り方：${r.sets.some(s => s.by === 'camdir') ? '頭から見た数字（カメラ）の向きが、楽にしたときから変わった分。スマホを手の中で傾けただけでは数えない' : '目と目の間の点が、楽にしたときの位置から動いた分（2026-10-23 より前の測り方。スマホの傾きも大きく数えていたので、いまの測り方の数字とは比べられない）'}。トレーニングと同じ測り方。どこからを問題とするかはまだ決めていません${S.lost.length ? `<br><span style="color:#ff8a65">※顔が外れて読めなかった向き：${S.lost.map(k => DJ[k]).join('・')}</span>` : ''}${S.small.length ? `<br><span style="color:#ff8a65">※動きが小さかった向き（${MOVE_MIN}° 未満）：${S.small.map(k => DJ[k]).join('・')}。動かさなければずれも出ないので、楽に向けられる所まで動かしてください</span>` : ''}</p>`;
+    <p class="small" style="margin-top:8px">「大きいとき」＝ずれが大きかった方から5%の所。測り方：${r.sets.some(s => s.by === 'camdir') ? '頭から見た数字（カメラ）の向きが、楽にしたときから変わった分。スマホを手の中で傾けただけでは数えない' : '目と目の間の点が、楽にしたときの位置から動いた分（2026-10-23 より前の測り方。スマホの傾きも大きく数えていたので、いまの測り方の数字とは比べられない）'}。${r.sets.some(s => s.level === 'hard') ? '基準：ハード（細かい揺れもそのまま数える）' : r.sets.some(s => s.level === 'easy') ? `基準：ふつう（読み取りの揺れを${LEVELS.easy.tau}秒でならし、${LEVELS.easy.dead}°未満は数えない。2026-10-23 からテストもこれ）` : 'トレーニングと同じ測り方'}。どこからを問題とするかはまだ決めていません${S.lost.length ? `<br><span style="color:#ff8a65">※顔が外れて読めなかった向き：${S.lost.map(k => DJ[k]).join('・')}</span>` : ''}${S.small.length ? `<br><span style="color:#ff8a65">※動きが小さかった向き（${MOVE_MIN}° 未満）：${S.small.map(k => DJ[k]).join('・')}。動かさなければずれも出ないので、楽に向けられる所まで動かしてください</span>` : ''}</p>`;
 }
 function runText(r) {
   if (!r.sets) return '';
