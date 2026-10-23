@@ -73,6 +73,7 @@ header{ display:flex; align-items:center; justify-content:space-between; padding
 .chips{ display:flex; gap:6px; flex-wrap:wrap; }
 .chip{ flex:1; min-width:52px; min-height:42px; padding:6px 4px; border-radius:999px; background:transparent; border:1px solid rgba(255,255,255,.14); color:var(--muted); font-size:13.5px; transition:all .15s; }
 .chip.on{ background:rgba(216,189,132,.12); color:var(--accent); border-color:var(--accent); }
+.chip small{display:block;font-size:10.5px;letter-spacing:0;opacity:.8}
 .dirGrid{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; max-width:260px; margin:8px auto 0; }
 .dirGrid .chip{ border-radius:14px; min-height:52px; line-height:1.25; font-size:12.5px; }
 .dirN{ display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--muted); }
@@ -173,6 +174,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 #hud .zone{position:absolute;left:50%;top:50%;border-radius:50%;transform:translate(-50%,-50%)}
 #hudZ1{border:2px solid rgba(90,209,139,.85)}#hudZ2{border:2px solid rgba(255,209,102,.8)}
 #hud .d{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:radial-gradient(circle,rgba(90,209,139,.75) 0%,rgba(90,209,139,.4) 28%,rgba(90,209,139,0) 70%);mix-blend-mode:screen;transition:background .3s}
+#hud.easy .d{width:84px;height:84px;margin:-42px 0 0 -42px;filter:blur(3px)}   /* ふつう＝大きくぼやけた光（2026-10-23）。ハード＝上の小さな光 */
 #fix.sm{width:22px;height:22px;margin:-11px 0 0 -11px;font-size:14px;line-height:22px}
 #fix.dotT{width:12px;height:12px;margin:-6px 0 0 -6px;box-shadow:0 0 0 2px rgba(0,0,0,.65)}
 #skipHint{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);font-size:12px;letter-spacing:.12em;color:rgba(216,189,132,.75);white-space:nowrap;pointer-events:none;z-index:9;opacity:0;transition:opacity .3s}
@@ -219,6 +221,8 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
         <div class="stepper"><button class="chip" id="repsDn" aria-label="1回へらす">−</button><b id="repsV"></b><button class="chip" id="repsUp" aria-label="1回ふやす">＋</button></div>
         <div class="opt">見つめる印</div>
         <div class="chips" data-cfg="target"><button class="chip" data-v="num">変わる数字</button><button class="chip" data-v="dot">小さな点</button></div>
+        <div class="opt">光の動き</div>
+        <div class="chips" data-cfg="level"><button class="chip" data-v="easy">ふつう<br><small>大きく・ゆっくり</small></button><button class="chip" data-v="hard">ハード<br><small>小さく・すばやく</small></button></div>
         <button class="btn" data-mode="train" disabled style="margin-top:12px">トレーニングを始める</button>
       </div>
       <div class="card">
@@ -266,7 +270,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
     <li>目は<b>カメラのすぐ下の数字</b>から離さない</li>
     <li>「みぎ」などの声のあと、<b>頭とスマホをいっしょに</b>往復。トレーニングは<b>「いち、に、さん…」の声</b>で1秒ずつ数えます（選んだ秒数で向けた先に着き、同じ秒数で戻る）。テストは<b>高い音＝真ん中・低い音＝向けた先</b></li>
     <li>顔がカメラの真ん中から動かないように。スマホだけ・頭だけが先に行くと「ずれ」になります</li>
-  </ol><p style="margin-top:6px">トレーニングでは、数字のまわりの円に光を出します。光は<b>頭がスマホに対してどちらへずれたか</b>（右へずれたら右）。円は3段で、内側から 緑＝3°未満・黄＝6°未満・外側の赤い帯＝6°以上（仮の線引き）。光が数字に重なっていれば、ずれていません。<br>スマホを手の中で少し傾けても、ずれには数えません（頭とスマホの位置関係だけを見ます）。</p></div>
+  </ol><p style="margin-top:6px">トレーニングでは、数字のまわりの円に光を出します。光は<b>頭がスマホに対してどちらへずれたか</b>（右へずれたら右）。円は3段で、内側から 緑＝3°未満・黄＝6°未満・外側の赤い帯＝6°以上（仮の線引き）。光が数字に重なっていれば、ずれていません。<br>「光の動き」は、ふつう＝大きくぼやけた光がゆっくり追う／ハード＝小さな光が細かい揺れまですぐ追う。緑・黄の線引きはどちらも同じです。<br>スマホを手の中で少し傾けても、ずれには数えません（頭とスマホの位置関係だけを見ます）。</p></div>
   <h4>記録</h4>
   <button class="menuLink" id="mHist">これまでの記録</button>
   <h4>音声</h4>
@@ -632,9 +636,17 @@ function repWatch(reps, D, tr, onRep) {
 // 円のまん中＝ずれていない。点は「スマホから見て頭がどちらへずれているか」（本人の右へずれた＝点が右）。点が数字の後ろに隠れていればOK
 let LIVE = null, SETON = false;
 function fixOn(on) { $('fix').style.display = on ? 'block' : 'none'; }
-const HUD_R = 85;   // トレーニングの円の半径（px）＝VC.range°。印をカメラのすぐ下に置いたので、映像の顔に重ねず、印のまわりに出す（2026-10-23）
+// 光の動き（2026-10-23 宮崎さん「ちょっと顔を動かしただけで光の点がすごく動く。大きくして動きを鈍く。今のはハードとして残す」）
+// R＝円の半径（px）・range＝円の端の度・tau＝光が追いつくまでの時間（秒。0＝フレームごとに55%寄せる前の動き）・dead＝この度未満の揺れは光を動かさない
+// 緑・黄の線引き（VC.ok・VC.warn）はどちらも同じ。変えるのは光の見え方だけ（記録の数字は比べられるまま）
+const LEVELS = { easy: { R: 105, range: 15, tau: 0.35, dead: 0.6 }, hard: { R: 85, range: VC.range, tau: 0, dead: 0 } };
+const LV = () => LEVELS[CFG.level] || LEVELS.easy;
 function hudOn(on) { $('hud').style.display = on ? 'block' : 'none'; $('hudNum').style.display = on ? 'block' : 'none';
-  for (const [id, v] of [['hudZ1', VC.ok], ['hudZ2', VC.warn]]) { const s = 2 * HUD_R * v / VC.range; $(id).style.width = $(id).style.height = s + 'px'; } }
+  const v_ = LV(), d_ = 2 * v_.R + 10; $('hud').classList.toggle('easy', CFG.level !== 'hard');
+  Object.assign($('hud').style, { width: d_ + 'px', height: d_ + 'px', margin: `${-d_ / 2}px 0 0 ${-d_ / 2}px` }); $('hudNum').style.top = `calc(var(--fy) + ${v_.R + 13}px)`;
+  for (const [id, v] of [['hudZ1', VC.ok], ['hudZ2', VC.warn]]) { const s = 2 * v_.R * v / v_.range; $(id).style.width = $(id).style.height = s + 'px'; }
+  const g1 = 100 * VC.ok / v_.range, g2 = 100 * VC.warn / v_.range;
+  $('hud').style.background = `radial-gradient(circle closest-side,rgba(90,209,139,.10) 0 ${g1}%,rgba(255,209,102,.10) ${g1}% ${g2}%,rgba(255,107,90,.10) ${g2}% 83%,rgba(255,107,90,.20) 83% 100%)`; }
 // 前の測り方（2026-10-18〜10-23）：目と目の間の点が、楽にしたときの位置からどれだけ動いたか → 度（目安）。両目の外の端の間＝約9cm、その点から首の回る軸まで＝約10cm として直す。
 // スマホをその場で1°傾けるだけで約3°と読んでしまう（カメラの回りを頭の回りと見なすため）ので、いまは記録（glMean）に残すだけ
 const GL_EYE_CM = 9, GL_ARM_CM = 10;
@@ -654,9 +666,12 @@ function drawLive() {
   if (!o) { L.miss = (L.miss || 0) + 1; if (L.miss > 6) { hud.style.borderColor = '#ff6b5a'; dot.style.display = 'none'; num.textContent = '顔が外れています'; num.style.color = '#ff6b5a'; } return; }
   L.miss = 0; dot.style.display = '';
   const { dR, dU } = o;
-  // 光＝頭がどちらへずれたか（本人の右へ＝右・上へ＝上）。円の端＝VC.range°。読み取りの細かい揺れを軽くならす
-  L.sx = L.sx == null ? dR : L.sx * 0.45 + dR * 0.55; L.sy = L.sy == null ? dU : L.sy * 0.45 + dU * 0.55;
-  const m = Math.hypot(L.sx, L.sy), k_ = HUD_R / VC.range, q = Math.min(1, (VC.range * 1.1) / Math.max(m, 1e-6)), x = L.sx * k_ * q, y = -L.sy * k_ * q, c = colOf(m);
+  // 光＝頭がどちらへずれたか（本人の右へ＝右・上へ＝上）。円の端＝range°。読み取りの揺れをならす（ふつうは tau 秒かけてゆっくり追う）
+  const v_ = LV(), now = performance.now(), dt = L.tp ? Math.min(0.2, (now - L.tp) / 1000) : 0.033; L.tp = now;
+  const a_ = v_.tau ? 1 - Math.exp(-dt / v_.tau) : 0.55;
+  L.sx = L.sx == null ? dR : L.sx + (dR - L.sx) * a_; L.sy = L.sy == null ? dU : L.sy + (dU - L.sy) * a_;
+  const m = Math.hypot(L.sx, L.sy), sh = m > v_.dead ? (m - v_.dead) / m : 0;   // 光の位置だけ、dead° ぶん中へ寄せる（数字はそのまま）
+  const k_ = v_.R / v_.range, q = Math.min(1, (v_.range * 1.1) / Math.max(m, 1e-6)), x = L.sx * sh * k_ * q, y = -L.sy * sh * k_ * q, c = colOf(m);
   dot.style.transform = `translate(${x}px,${y}px)`; dot.style.background = glow(c); hud.style.borderColor = m >= VC.warn ? '#ff6b5a' : 'rgba(255,107,90,.55)';
   num.textContent = `ずれ ${m.toFixed(1)}°`; num.style.color = c;
 }
@@ -851,7 +866,7 @@ function analyzeSet(k, fr, base, t0, T, reps, byGl = false, spans = null, tEnd =
 const lsJ = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch (e) { return d; } };
 // 向きは8方向を1つずつ選ぶ（2026-10-19 宮崎さん）。前の「左右・上下・斜め」の選びは、その中身の向きに読み替える
 const REPS_MIN = 1, REPS_MAX = 20;
-let CFG = { dirs: lsJ('vorcDirs', null), speed: localStorage.getItem('vorcPace') || 'p3', reps: localStorage.getItem('vorcReps') || '3', target: localStorage.getItem('vorcTarget') === 'dot' ? 'dot' : 'num' };
+let CFG = { dirs: lsJ('vorcDirs', null), speed: localStorage.getItem('vorcPace') || 'p3', reps: localStorage.getItem('vorcReps') || '3', target: localStorage.getItem('vorcTarget') === 'dot' ? 'dot' : 'num', level: localStorage.getItem('vorcLevel') === 'hard' ? 'hard' : 'easy' };
 if (!Array.isArray(CFG.dirs)) CFG.dirs = lsJ('vorcSets', ['lr']).filter(k => SETK.includes(k)).flatMap(k => SETS[k]);
 CFG.dirs = SETS.all.filter(k => CFG.dirs.includes(k)); if (!CFG.dirs.length) CFG.dirs = SETS.lr.slice(); if (!SPEEDS[CFG.speed]) CFG.speed = 'p3';
 CFG.reps = String(Math.min(REPS_MAX, Math.max(REPS_MIN, Math.round(+CFG.reps) || TRAIN_REPS)));
@@ -892,7 +907,7 @@ async function runSession(P_) {
     if (my !== tok) return;
   }
   fixRoll(false); fixOn(false); dark(false); endBeep();
-  RUN.plan = { dirs: P_.dirs, T: P_.T, speed: P_.speed, reps: P_.reps, free: out.some(s => s.free) }; RUN.sets = out; RUN.sum = summarize(out);
+  RUN.plan = { dirs: P_.dirs, T: P_.T, speed: P_.speed, reps: P_.reps, level: MODE === 'train' ? CFG.level : null, free: out.some(s => s.free) }; RUN.sets = out; RUN.sum = summarize(out);
   if (!RUN.sum.n) return fail(stepIntro, '顔が見えている時間が短すぎました');
   finish();
 }
@@ -1017,7 +1032,7 @@ function goHome() { leaveStage(); screen('sHome'); }
 $('bQuit').onclick = () => goHome();
 
 // トップの選び（向き・速さ）。端末に覚える
-const LSK = { speed: 'vorcPace', target: 'vorcTarget' };
+const LSK = { speed: 'vorcPace', target: 'vorcTarget', level: 'vorcLevel' };
 function paintChips() { document.querySelectorAll('[data-cfg]').forEach(g => g.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.v === CFG[g.dataset.cfg])));
   const p = presetOf(); $('dirPreset').querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.v === p));
   $('dirGrid').querySelectorAll('.chip').forEach(c => c.classList.toggle('on', CFG.dirs.includes(c.dataset.v)));
@@ -1081,7 +1096,7 @@ function setVH() { document.documentElement.style.setProperty('--vh', (innerHeig
 setVH(); addEventListener('resize', setVH);
 screen('sHome');
 
-if (TEST) window.__vorc = { get RUN() { return RUN; }, get tok() { return tok; }, begin, analyzeSet, summarize, runHTML, runsAll, last: () => last, hp: () => lastHp, cnt: () => Object.keys(CNT).length, va: () => ({ paused: VA.paused, t: Math.round(VA.currentTime * 10) / 10, dur: VA.duration, src: VA.src.split("/").pop() }) };
+if (TEST) window.__vorc = { get RUN() { return RUN; }, CFG, hudOn, drawLive, live: (b, hp) => { if (b) LIVE = { base: b }; lastHp = hp; }, get tok() { return tok; }, begin, analyzeSet, summarize, runHTML, runsAll, last: () => last, hp: () => lastHp, cnt: () => Object.keys(CNT).length, va: () => ({ paused: VA.paused, t: Math.round(VA.currentTime * 10) / 10, dur: VA.duration, src: VA.src.split("/").pop() }) };
 
 // ── Service Worker（Network First）。新しい版に切り替わったら読み込み直す
 if ('serviceWorker' in navigator && !TEST) {
