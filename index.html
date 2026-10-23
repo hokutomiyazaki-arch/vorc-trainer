@@ -94,6 +94,16 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 .when{ font-size:13px; color:var(--muted); }
 #copyArea{ position:absolute; left:-9999px; width:10px; height:10px; }
 .histItem{ display:block; width:100%; text-align:left; padding:12px 14px; margin:8px 0; border-radius:14px; background:var(--card); border:1px solid var(--line); color:var(--ink); font-size:14.5px; line-height:1.6; }
+.topBox{ margin:10px 0; padding:12px 12px 6px; border-radius:14px; background:rgba(255,107,90,.06); border:1px solid rgba(255,107,90,.35); }
+.topH{ font-family:var(--serif); font-size:17px; font-weight:700; letter-spacing:.08em; color:var(--ink); margin-bottom:6px; }
+.topItem,.dRow{ border-left:4px solid #555; padding:6px 0 6px 10px; margin:6px 0; font-size:14.5px; line-height:1.7; }
+.topItem .small,.dRow .small{ display:block; }
+.topItem ul,.dRow ul{ margin:2px 0 2px 18px; padding:0; font-size:13.5px; color:var(--ink); }
+.dRow{ background:rgba(0,0,0,.22); border-radius:0 12px 12px 0; padding-right:10px; }
+.trendWrap{ overflow-x:auto; }
+.trend{ width:100%; border-collapse:collapse; font-size:13px; text-align:center; }
+.trend th{ font-size:10.5px; font-weight:500; color:var(--muted); padding:4px 2px; line-height:1.3; }
+.trend td{ padding:5px 2px; border-top:1px solid rgba(255,255,255,.06); font-weight:700; }
 .histItem small{ display:block; color:var(--muted); font-size:12.5px; font-weight:500; }
 
 /* サイドメニュー（モーダルでない・オーバーレイ＋スライド） */
@@ -214,6 +224,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
         <p>8つの向きを3往復ずつ（ふつうの速さ）。途中は何も出さず、<b>終わってから</b>どの向きにどれくらいずれたかを出します</p>
         <button class="btn" data-mode="test" disabled>テストを始める</button>
       </div>
+      <button class="btn ghost" id="bHomeHist">これまでの記録を見る</button>
       <div class="notes">
         ・映像は端末の外へ送りません（端末の中で数字にするだけです）。<br>
         ・医療の検査ではありません。めまい・気分の悪さ・首の痛みが出たら、すぐにやめてください。<br>
@@ -226,6 +237,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
       <p class="when" id="endWhen"></p>
       <div id="endList"></div>
       <button class="btn" id="bCopy">記録をテキストでコピー</button>
+      <button class="btn ghost" id="bEndHist">これまでの記録を見る</button>
       <button class="btn ghost" id="bAgain">もう一度</button>
       <button class="btn ghost" id="bHome">トップに戻る</button>
       <textarea id="copyArea" readonly aria-hidden="true"></textarea>
@@ -233,7 +245,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 
     <section class="screen hide" id="sHist">
       <h2>これまでの記録</h2>
-      <p class="desc">この端末に残っている記録です（新しい順・最新30件）。押すと結果を開きます。</p>
+      <p class="desc">この端末に残っている記録です（新しい順・最新300件）。押すと結果を開きます。テストは、向きごとのずれの変化を表で比べられます。</p>
       <div id="histList"></div>
       <button class="btn ghost" id="bHistCopy">全部の記録をテキストでコピー</button>
       <button class="btn ghost" id="bHistHome">トップに戻る</button>
@@ -865,7 +877,7 @@ async function runSession(P_) {
     out.push(r);
     if (MODE === 'train' && !r.err) {   // トレーニング：1セットごとにその場で点数（数字は読み上げない）
       hudOn(false); fixRoll(false);
-      cue(`${DJ[r.k]}：平均 <b style="color:${colOf(r.mean)}">${r.mean}°</b><small>ずれ ${VC.ok}° 未満の時間 ${Math.round(r.inOk * 100)}%${r.move != null && r.move < MOVE_MIN ? '・動きが小さめ' : ''}</small>`, 'top', '');
+      cue(`${ARW[r.k]} ${DJ[r.k]}へ：<b style="color:${colOf(r.mean)}">${lvl(r.mean)}</b>（平均 ${r.mean}°）<small>${r.mean >= VC.ok && howWords(r)[0] ? howWords(r)[0].replace(/<[^>]+>/g, '') + '<br>' : ''}ずれ ${VC.ok}° 未満の時間 ${Math.round(r.inOk * 100)}%${r.move != null && r.move < MOVE_MIN ? '・動きが小さめ' : ''}</small>`, 'top', '');
       await sleep(2200);
     } else { hudOn(false); cue(r.err ? '顔が外れました。次へ進みます' : '', 'thin top'); await sleep(r.err ? 1500 : 900); }
     if (my !== tok) return;
@@ -884,6 +896,31 @@ function summarize(S) {
 }
 
 // ════ 結果
+// 🔴 2026-10-23 宮崎さん「『右へ平均14.3°・32.4°・ずれた向き左上』では何を表しているか分からない。どの方向に行ったときにどうずれたか、誰が見ても直感的に分かるように」
+// 「一番問題が大きかった場所をいくつかピックアップして一番上に」「ズレを記録して、記録一覧を後で見られるように」
+// → 向きごとに「◯◯へ向けるとき：大きくずれた（平均◯°）／頭が遅れていた・上へそれていた」の言葉で出す。いちばん上に大きかった所を3つまで
+const ASYM = 3;   // 度：左右・上下の差がこれ以上なら「差がある」として上に出す（仮）
+const lvl = m => m < VC.ok ? 'ほぼずれていない' : m < VC.warn ? '少しずれた' : '大きくずれた';
+// ずれ方を言葉に。along＝動かした向きに沿ったずれ（＋＝頭が先に行く・−＝頭が遅れる）・cross＝動かした線から直角にそれた分
+function howWords(s) {
+  const w = [], a = s.along, c = s.cross;
+  if (Number.isFinite(a) && Math.abs(a) >= 1) w.push(a > 0 ? `頭が先に行きすぎて、スマホが遅れていた（約${Math.abs(a)}°）` : `スマホが先に行き、頭がついてきていなかった（約${Math.abs(a)}°）`);
+  if (s.crossDir && Number.isFinite(c)) w.push(`まっすぐ${DJ[s.k]}ではなく、頭が${DJ[s.crossDir]}の方へそれていた（約${Math.abs(c)}°）`);
+  if (!w.length && s.mean >= VC.ok) w.push('決まった向きではなく、顔が行ったり来たり揺れていた');
+  if (s.move != null && s.move < MOVE_MIN) w.push(`<span style="color:#ff8a65">動きが小さめ（約${s.move}°）。楽に向けられる所まで動かすと正しく測れます</span>`);
+  return w;
+}
+// いちばん問題が大きかった所（ずれの平均が大きい順に3つまで＋左右・上下の差）
+function topIssues(r) {
+  const ok = r.sets.filter(s => !s.err), S = r.sum || {}, out = [];
+  ok.filter(s => s.mean >= VC.ok).sort((a, b) => b.mean - a.mean).slice(0, 3)
+    .forEach(s => out.push({ c: colOf(s.mean), h: `${ARW[s.k]} ${DJ[s.k]}へ向けるとき　<span style="color:${colOf(s.mean)}">${lvl(s.mean)}</span>`, n: `平均 ${s.mean}°・大きいとき ${s.p95}°`, w: howWords(s).filter(t => !/動きが小さめ/.test(t)) }));
+  for (const [p, a, b] of [[S.lr, 'R', 'L'], [S.ud, 'U', 'D']]) if (p && Math.abs(p.diff) >= ASYM) {
+    const big = p.diff > 0 ? a : b, sm = big === a ? b : a;
+    out.push({ c: '#ffd166', h: `${DJ[a]}と${DJ[b]}で差がある`, n: '', w: [`${DJ[big]}へ向けるときの方が ${Math.abs(p.diff)}° 大きくずれる（${DJ[big]} ${p[big]}°／${DJ[sm]} ${p[sm]}°）`] });
+  }
+  return out;
+}
 // 向きごとのずれの大きさを8本の線で（線が長い向きほど、ずれが大きい）。緑の輪＝3°・黄の輪＝6°（仮）
 function radarSVG(S) {
   const ok = S.filter(s => !s.err), mx = Math.max(VC.warn * 1.4, ...ok.map(s => s.mean)), R = 90, sc = v => v / mx * R;
@@ -894,33 +931,38 @@ function radarSVG(S) {
     return `<line x1="120" y1="120" x2="${x2}" y2="${y2}" stroke="#2b2f38"/><line x1="120" y1="120" x2="${x}" y2="${y}" stroke="${colOf(s.mean)}" stroke-width="6" stroke-linecap="round"/>${lab}`; }).join('');
   return `<svg viewBox="0 0 240 240" width="240" height="240" style="display:block;margin:6px auto;background:#11151c;border-radius:10px"><circle cx="120" cy="120" r="${sc(VC.ok)}" fill="none" stroke="#5ad18b" stroke-dasharray="3 3"/><circle cx="120" cy="120" r="${sc(VC.warn)}" fill="none" stroke="#ffd166" stroke-dasharray="3 3"/>${spokes}<circle cx="120" cy="120" r="5" fill="#fff"/></svg>`;
 }
-const alongWord = a => !Number.isFinite(a) || Math.abs(a) < 1 ? '' : a > 0 ? `スマホが遅れる ${Math.abs(a)}°` : `スマホが先に行く ${Math.abs(a)}°`;
+const alongWord = a => !Number.isFinite(a) || Math.abs(a) < 1 ? '' : a > 0 ? `頭が先に行く ${Math.abs(a)}°` : `頭が遅れる ${Math.abs(a)}°`;
 function setRow(s) {
-  if (s.err) return `${DJ[s.k]}へ：<span style="color:#ff8a65">顔が外れて読めず</span>`;
-  const sub = [alongWord(s.along), s.crossDir ? `${DJ[s.crossDir]}にそれる ${Math.abs(s.cross)}°` : ''].filter(Boolean).join('・');
+  if (s.err) return `<div class="dRow" style="border-left-color:#555"><b>${ARW[s.k]} ${DJ[s.k]}へ</b>　<span style="color:#ff8a65">顔が外れて読めず</span></div>`;
   const ex = [s.free ? `${s.repGy}往復・${s.dur}秒${s.timeout ? '（数えきれず）' : ''}` : '', s.move != null ? `動かした角度 約${s.move}°` : '', s.miss > 0.05 ? `顔が外れた ${Math.round(s.miss * 100)}%` : ''].filter(Boolean).join('・');
-  return `${DJ[s.k]}へ：平均 <b style="color:${colOf(s.mean)}">${s.mean}°</b>・最大 ${s.p95}°${s.worstDir ? `（ずれた向き ${DJ[s.worstDir]}）` : ''}${sub ? `<br><span class="small">　${sub}</span>` : ''}${ex ? `<br><span class="small">　${ex}${s.move != null && s.move < MOVE_MIN ? '<span style="color:#ff8a65">・動きが小さめ</span>' : ''}</span>` : ''}`;
+  const w = s.mean >= VC.ok ? howWords(s) : howWords(s).filter(t => /動きが小さめ/.test(t));
+  return `<div class="dRow" style="border-left-color:${colOf(s.mean)}"><b>${ARW[s.k]} ${DJ[s.k]}へ</b>　<span style="color:${colOf(s.mean)}">${lvl(s.mean)}</span>　<span class="small">平均 ${s.mean}°・大きいとき ${s.p95}°</span>${w.length ? `<ul>${w.map(t => `<li>${t}</li>`).join('')}</ul>` : ''}${ex ? `<span class="small">${ex}</span>` : ''}</div>`;
 }
 function runHTML(r) {
   if (!r.sets) return '<div class="res">この記録には結果がありません。</div>';
-  const S = r.sum, P_ = r.plan;
-  const pr = (p, a, b) => p ? `${DJ[a]} ${p[a]}° ／ ${DJ[b]} ${p[b]}°（差 ${Math.abs(p.diff)}°${Math.abs(p.diff) >= 2 ? `・${DJ[p.diff > 0 ? a : b]}が大きい` : ''}）` : '';
-  return `<p class="resHead">${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${P_.free ? `自分のペース・${P_.reps}往復` : `${(SPEEDS[P_.speed] || ['', ''])[1]}・1往復${P_.T}秒×${P_.reps}`}）</p><div class="res">
-    全体のずれの平均 <b>${S.mean ?? '—'}°</b>・ずれ ${VC.ok}° 未満の時間 <b>${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}</b><br>いちばんずれた向き <b>${S.worst ? DJ[S.worst] : '—'}</b>
-    ${S.lr ? `<br>左右：${pr(S.lr, 'R', 'L')}` : ''}${S.ud ? `<br>上下：${pr(S.ud, 'U', 'D')}` : ''}
-    ${radarSVG(r.sets)}${r.sets.map(setRow).join('<br>')}
-    <br><span class="small">ずれ＝目と目の間の点が、楽にしたときの位置から動いた分を、頭を何度回した分かに直した値（度・目安。両目の外の端の間≒9cm、その点から首の回る軸≒10cm として計算）。トレーニングと同じ測り方。最大は大きい方から5%の所。「スマホが遅れる」＝頭が先に行っている。色の線引き（緑 ${VC.ok}° 未満・黄 ${VC.warn}° 未満）は仮で、どこからを問題とするかはまだ決めていない${S.lost.length ? `<br><span style="color:#ff8a65">※顔が外れて読めなかった向き：${S.lost.map(k => DJ[k]).join('・')}</span>` : ''}${S.small.length ? `<br><span style="color:#ff8a65">※動きが小さかった向き（${MOVE_MIN}° 未満）：${S.small.map(k => DJ[k]).join('・')}。動かさなければずれも出ないので、楽に向けられる所まで動かしてください</span>` : ''}</span></div>`;
+  const S = r.sum, P_ = r.plan, top = topIssues(r);
+  const order = (P_.dirs || r.sets.map(s => s.k)), sets = order.map(k => r.sets.find(s => s.k === k)).filter(Boolean);
+  return `<p class="resHead">${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${P_.free ? `自分のペース・${P_.reps}往復` : `${(SPEEDS[P_.speed] || ['', ''])[1]}・1往復${P_.T}秒×${P_.reps}`}）</p>
+    <div class="topBox"><div class="topH">${top.length ? 'いちばんずれていた所' : '目立つずれはありませんでした'}</div>
+    ${top.length ? top.map((t, i) => `<div class="topItem" style="border-left-color:${t.c}"><b>${i + 1}. ${t.h}</b>${t.n ? `<span class="small">${t.n}</span>` : ''}${t.w.length ? `<ul>${t.w.map(x => `<li>${x}</li>`).join('')}</ul>` : ''}</div>`).join('') : `<p class="small">どの向きも、ずれの平均が ${VC.ok}° 未満でした。</p>`}</div>
+    <div class="res"><b>数字の読み方</b><br><span class="small">頭とスマホがぴったりいっしょに動けば、顔は画面の真ん中から動きません（0°）。数字は、顔が真ん中から外れた大きさを「頭をスマホより何度よけいに回した（足りなかった）か」に直した目安です。<br><span style="color:#5ad18b">● ${VC.ok}°未満＝ほぼずれていない</span>　<span style="color:#ffd166">● ${VC.ok}〜${VC.warn}°＝少しずれた</span>　<span style="color:#ff6b5a">● ${VC.warn}°以上＝大きくずれた</span>（線引きは仮）</span></div>
+    <div class="res">全体のずれの平均 <b>${S.mean ?? '—'}°</b>・ずれが ${VC.ok}° 未満だった時間 <b>${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}</b>
+    ${radarSVG(r.sets)}<p class="small" style="text-align:center;margin:0">線が長い向きほど、その向きに動かしたときのずれが大きい</p></div>
+    <p class="resHead" style="font-size:16px">向きごとの結果</p>${sets.map(setRow).join('')}
+    <p class="small" style="margin-top:8px">「大きいとき」＝ずれが大きかった方から5%の所。測り方：目と目の間の点が、楽にしたときの位置から動いた分（両目の外の端の間≒9cm、首の回る軸まで≒10cm として度に直す）。トレーニングと同じ測り方。どこからを問題とするかはまだ決めていません${S.lost.length ? `<br><span style="color:#ff8a65">※顔が外れて読めなかった向き：${S.lost.map(k => DJ[k]).join('・')}</span>` : ''}${S.small.length ? `<br><span style="color:#ff8a65">※動きが小さかった向き（${MOVE_MIN}° 未満）：${S.small.map(k => DJ[k]).join('・')}。動かさなければずれも出ないので、楽に向けられる所まで動かしてください</span>` : ''}</p>`;
 }
 function runText(r) {
   if (!r.sets) return '';
-  const S = r.sum;
+  const S = r.sum, top = topIssues(r).map((t, i) => `${i + 1}. ${t.h.replace(/<[^>]+>/g, '')}${t.n ? `（${t.n}）` : ''}${t.w.length ? '：' + t.w.map(x => x.replace(/<[^>]+>/g, '')).join('・') : ''}`);
   return [`VORC トレーニング｜FNT の記録 ${when(r.started)}・${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${r.plan.free ? `自分のペース・${r.plan.reps}往復` : `${(SPEEDS[r.plan.speed] || ['', ''])[1]}・1往復${r.plan.T}秒×${r.plan.reps}`}）`,
-    `全体の平均 ${S.mean ?? '—'}°・${VC.ok}°未満 ${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}・いちばんずれた向き ${S.worst ? DJ[S.worst] : '—'}`,
-    r.sets.map(s => s.err ? `${DJ[s.k]} 読めず` : `${DJ[s.k]} 平均${s.mean}°・最大${s.p95}°${alongWord(s.along) ? '・' + alongWord(s.along) : ''}${s.move != null ? `・動き${s.move}°` : ''}`).join('／')].join('\n');
+    top.length ? `いちばんずれていた所\n${top.join('\n')}` : `目立つずれなし（どの向きも平均 ${VC.ok}° 未満）`,
+    `全体の平均 ${S.mean ?? '—'}°・${VC.ok}°未満の時間 ${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}`,
+    r.sets.map(s => s.err ? `${DJ[s.k]}へ 読めず` : `${DJ[s.k]}へ ${lvl(s.mean)} 平均${s.mean}°・大きいとき${s.p95}°${alongWord(s.along) ? '・' + alongWord(s.along) : ''}${s.crossDir ? `・${DJ[s.crossDir]}へそれる${Math.abs(s.cross)}°` : ''}`).join('\n')].join('\n');
 }
-const RUNS_KEY = 'vorc_runs';
+// 記録は端末に残す（2026-10-23 30件 → 300件に。1件は数KBなので端末の容量に余裕がある）
+const RUNS_KEY = 'vorc_runs', RUNS_MAX = 300;
 const runsAll = () => { try { return JSON.parse(localStorage.getItem(RUNS_KEY) || '[]'); } catch (e) { return []; } };
-function saveRun() { try { const a = runsAll(); a.push(RUN); while (a.length > 30) a.shift(); localStorage.setItem(RUNS_KEY, JSON.stringify(a)); } catch (e) {} }
+function saveRun() { try { const a = runsAll(); a.push(RUN); while (a.length > RUNS_MAX) a.shift(); localStorage.setItem(RUNS_KEY, JSON.stringify(a)); } catch (e) {} }
 const when = iso => new Date(iso).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 let VIEW = null;
 function showEnd(r, fresh) {
@@ -939,10 +981,18 @@ async function copyText(t, b, label) { let ok = false; try { await navigator.cli
 $('bCopy').onclick = () => VIEW && copyText(runText(VIEW), $('bCopy'), '記録をテキストでコピー');
 $('bAgain').onclick = () => begin(VIEW && VIEW.mode === 'test' ? 'test' : 'train');
 $('bHome').onclick = $('bHistHome').onclick = () => goHome();
+$('bEndHist').onclick = $('bHomeHist').onclick = () => showHist();
 $('bHistCopy').onclick = () => { const a = runsAll().slice().reverse(); copyText(a.length ? a.map(runText).join('\n\n') : '記録はまだありません', null); };
+// テストの向きごとの変化（新しい順・最新20回）。前後で比べるための表
+function trendHTML(a) {
+  const T = a.filter(r => r.mode === 'test' && r.sets).slice(0, 20); if (!T.length) return '';
+  const cell = (r, k) => { const s = r.sets.find(q => q.k === k); return !s ? '<td>—</td>' : s.err ? '<td class="small">✕</td>' : `<td style="color:${colOf(s.mean)}">${r0(s.mean)}</td>`; };
+  return `<p class="resHead" style="font-size:16px">テストの向きごとの変化（°）</p><div class="trendWrap"><table class="trend"><tr><th>日</th>${TEST_DIRS.map(k => `<th>${ARW[k]}<br>${DJ[k]}</th>`).join('')}</tr>${T.map(r => `<tr><td class="small">${new Date(r.started).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })}</td>${TEST_DIRS.map(k => cell(r, k)).join('')}</tr>`).join('')}</table></div><p class="small">数字＝その向きのずれの平均。色は結果の画面と同じ（緑＝${VC.ok}°未満・黄＝${VC.warn}°未満・赤＝それ以上）</p>`;
+}
 function showHist() {
   const a = runsAll().slice().reverse();
-  $('histList').innerHTML = a.length ? a.map((r, i) => `<button class="histItem" data-i="${i}">${when(r.started)}　${r.mode === 'test' ? 'テスト' : 'トレーニング'}<small>平均 ${r.sum ? r.sum.mean ?? '—' : '—'}°・いちばんずれた向き ${r.sum && r.sum.worst ? DJ[r.sum.worst] : '—'}</small></button>`).join('') : '<p class="desc">まだ記録はありません。</p>';
+  const worst2 = r => { if (!r.sets) return '—'; const w = r.sets.filter(s => !s.err && s.mean >= VC.ok).sort((x, y) => y.mean - x.mean).slice(0, 2); return w.length ? w.map(s => `<span style="color:${colOf(s.mean)}">${ARW[s.k]}${DJ[s.k]} ${s.mean}°</span>`).join('・') : '<span style="color:#5ad18b">目立つずれなし</span>'; };
+  $('histList').innerHTML = a.length ? trendHTML(a) + `<p class="resHead" style="font-size:16px">記録の一覧（${a.length}件）</p>` + a.map((r, i) => `<button class="histItem" data-i="${i}">${when(r.started)}　${r.mode === 'test' ? 'テスト' : 'トレーニング'}<small>全体の平均 ${r.sum ? r.sum.mean ?? '—' : '—'}°・いちばんずれた所 ${worst2(r)}</small></button>`).join('') : '<p class="desc">まだ記録はありません。</p>';
   $('histList').querySelectorAll('.histItem').forEach(b => { b.onclick = () => showEnd(a[+b.dataset.i], false); });
   screen('sHist');
 }
