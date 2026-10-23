@@ -2,7 +2,7 @@
 // 戦略：Network First（新しいコードを最優先で拾う）。オフライン時のみキャッシュへ。
 // index.html 側で controllerchange を検知して location.reload() する。
 // 🔴 index.html や voice/ を変えたら CACHE_NAME の版を上げる（古いキャッシュが消える）
-const CACHE_NAME = 'vorc-trainer-v1.10.0';
+const CACHE_NAME = 'vorc-trainer-v1.11.0';
 
 const ASSETS_TO_CACHE = [
   './',

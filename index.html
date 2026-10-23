@@ -151,13 +151,14 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 #cue:empty{display:none}
 #cue.thin{background:none}
 #cue.top{top:calc(70px + env(safe-area-inset-top));transform:translateX(-50%);padding:8px 12px 12px}
+#cue.below{top:calc(var(--fy) + 150px);transform:translateX(-50%);padding:8px 12px 12px}
 #cue.fit{font-size:clamp(18px,5.4vw,26px)}
 #cue.fit canvas{width:250px;height:193px}
 #cue small{display:block;font-size:16px;font-weight:600;color:#dfe3ea;margin-top:8px;line-height:1.5}
 #cue canvas{display:block;margin:0 auto 6px;width:220px;height:170px;background:#0f1115;border-radius:12px}
 #cue .ok{display:inline-block;color:#5ad18b;font-size:1.5em}
 #cue .arw{font-size:1.6em;color:#d8bd84}
-#bVoice{position:absolute;right:10px;top:calc(40px + env(safe-area-inset-top));width:auto;margin:0;padding:6px 12px;font-size:13px;border-radius:20px;background:rgba(0,0,0,.6);color:#f4f1ea;border:1px solid rgba(216,189,132,.35);z-index:10}
+#bVoice{position:absolute;right:10px;top:calc(var(--fy) + 112px);width:auto;margin:0;padding:6px 12px;font-size:13px;border-radius:20px;background:rgba(0,0,0,.6);color:#f4f1ea;border:1px solid rgba(216,189,132,.35);z-index:10}
 #bQuit{position:absolute;right:10px;top:calc(3px + env(safe-area-inset-top));width:auto;margin:0;padding:3px 12px;font-size:13px;border-radius:20px;background:rgba(0,0,0,.6);color:#f4f1ea;border:1px solid rgba(216,189,132,.35);z-index:10}
 #bottom{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.75) 30%);z-index:9;max-height:62vh;overflow:auto;display:flex;flex-direction:column}
 #bottom:not(:has(*:not(:empty))){background:none}
@@ -165,8 +166,9 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 #sMain .res{background:#1b1f27;border:0;border-radius:12px;padding:10px 12px;margin:8px 0;font-size:14px}
 #camFix{position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:60;width:auto;font-size:17px;font-weight:700;border:0;border-radius:12px;padding:14px;color:#fff;background:#e8590c}
 /* 見つめる数字（画面のまん中）と、トレーニングのときのずれの円 */
-#fix{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:#fff;color:#000;font-size:32px;font-weight:800;line-height:56px;text-align:center;display:none;z-index:7;pointer-events:none}
-#hud{position:absolute;left:50%;top:50%;width:300px;height:300px;margin:-150px 0 0 -150px;border-radius:50%;border:5px solid #ff6b5a;display:none;z-index:6;pointer-events:none;transition:border-color .15s;
+#sMain{--fy:calc(env(safe-area-inset-top) + 128px)}   /* 見つめる印の高さ＝フロントカメラのすぐ下（2026-10-23） */
+#fix{position:absolute;left:50%;top:var(--fy);width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:#fff;color:#000;font-size:32px;font-weight:800;line-height:56px;text-align:center;display:none;z-index:7;pointer-events:none}
+#hud{position:absolute;left:50%;top:var(--fy);width:180px;height:180px;margin:-90px 0 0 -90px;border-radius:50%;border:5px solid #ff6b5a;display:none;z-index:6;pointer-events:none;transition:border-color .15s;
   background:radial-gradient(circle closest-side,rgba(90,209,139,.10) 0 33.3%,rgba(255,209,102,.10) 33.3% 66.6%,rgba(255,107,90,.10) 66.6% 83%,rgba(255,107,90,.20) 83% 100%)}
 #hud .zone{position:absolute;left:50%;top:50%;border-radius:50%;transform:translate(-50%,-50%)}
 #hudZ1{border:2px solid rgba(90,209,139,.85)}#hudZ2{border:2px solid rgba(255,209,102,.8)}
@@ -175,9 +177,9 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 #fix.dotT{width:12px;height:12px;margin:-6px 0 0 -6px;box-shadow:0 0 0 2px rgba(0,0,0,.65)}
 #skipHint{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);font-size:12px;letter-spacing:.12em;color:rgba(216,189,132,.75);white-space:nowrap;pointer-events:none;z-index:9;opacity:0;transition:opacity .3s}
 #skipHint.on{opacity:1}
-#hudNum{position:absolute;left:50%;top:calc(50% + 162px);transform:translateX(-50%);font-size:24px;font-weight:800;white-space:nowrap;display:none;z-index:6;pointer-events:none;text-shadow:0 2px 6px #000}
-#reps{position:absolute;left:50%;top:calc(50% + 46px);transform:translateX(-50%);font-size:20px;font-weight:800;color:#d8bd84;white-space:nowrap;display:none;z-index:7;pointer-events:none;text-shadow:0 2px 6px #000}
-#reps.tr{top:calc(140px + env(safe-area-inset-top))}
+#hudNum{position:absolute;left:50%;top:calc(var(--fy) + 98px);transform:translateX(-50%);font-size:24px;font-weight:800;white-space:nowrap;display:none;z-index:6;pointer-events:none;text-shadow:0 2px 6px #000}
+#reps{position:absolute;left:50%;top:calc(var(--fy) + 46px);transform:translateX(-50%);font-size:20px;font-weight:800;color:#d8bd84;white-space:nowrap;display:none;z-index:7;pointer-events:none;text-shadow:0 2px 6px #000}
+#reps.tr{top:calc(var(--fy) + 250px)}
 #reps b{font-size:56px;line-height:1;margin:0 6px;vertical-align:-6px}
 </style>
 </head>
@@ -202,7 +204,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
   <main>
     <section class="screen" id="sHome">
       <h2>画面を見つめたまま、<br>頭とスマホをいっしょに動かす</h2>
-      <p class="desc">スマホを顔の前に持ち、<b>画面のまん中の数字</b>を見たまま、頭とスマホを<b>いっしょに</b>右・左・上・下・斜めへ動かします。顔がカメラの真ん中からずれた分を、<b>VORC（頭が動いても目を画面に残す働き）のエラー</b>として測ります。</p>
+      <p class="desc">スマホを<b>顔の正面・目の高さ</b>に持ち、<b>カメラのすぐ下の数字</b>を見たまま、頭とスマホを<b>いっしょに</b>右・左・上・下・斜めへ動かします。頭とスマホの位置関係がずれた分（目を動かさないと数字が見えなくなった分）を、<b>VORC（頭が動いても目を画面に残す働き）のエラー</b>として測ります。</p>
       <p class="loadState" id="loadState">読み込み中…</p>
       <canvas width="440" height="340" id="homeDemo" style="display:block;width:100%;max-width:300px;aspect-ratio:440/340;margin:6px auto 0;background:#0f1115;border-radius:12px"></canvas>
       <div class="card">
@@ -216,7 +218,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
         <div class="opt">1つの向きの往復 <i>（1〜20回）</i></div>
         <div class="stepper"><button class="chip" id="repsDn" aria-label="1回へらす">−</button><b id="repsV"></b><button class="chip" id="repsUp" aria-label="1回ふやす">＋</button></div>
         <div class="opt">見つめる印</div>
-        <div class="chips" data-cfg="target"><button class="chip" data-v="num">変わる数字</button><button class="chip" data-v="dot">まん中の点</button></div>
+        <div class="chips" data-cfg="target"><button class="chip" data-v="num">変わる数字</button><button class="chip" data-v="dot">小さな点</button></div>
         <button class="btn" data-mode="train" disabled style="margin-top:12px">トレーニングを始める</button>
       </div>
       <div class="card">
@@ -260,10 +262,11 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
   <h4>使い方</h4>
   <div class="guide"><ol>
     <li>スマホを<b>顔の前</b>に持つ（顔全体が映る距離・腕は軽く曲げる）</li>
-    <li>目は<b>画面のまん中の数字</b>から離さない</li>
+    <li>スマホは<b>顔の正面・目の高さ</b>に縦に持つ（ずれていると始めに「スマホを顔の正面・目の高さに」と出ます）</li>
+    <li>目は<b>カメラのすぐ下の数字</b>から離さない</li>
     <li>「みぎ」などの声のあと、<b>頭とスマホをいっしょに</b>往復。トレーニングは<b>「いち、に、さん…」の声</b>で1秒ずつ数えます（選んだ秒数で向けた先に着き、同じ秒数で戻る）。テストは<b>高い音＝真ん中・低い音＝向けた先</b></li>
     <li>顔がカメラの真ん中から動かないように。スマホだけ・頭だけが先に行くと「ずれ」になります</li>
-  </ol><p style="margin-top:6px">トレーニングでは、映ったご自分の顔の<b>目と目の間</b>に光の点を重ねて出します。始めに、その点が画面のまん中（数字の所）に来るよう映像を合わせます。円は3段で、内側から 緑＝3°未満・黄＝6°未満・外側の赤い帯＝6°以上（仮の線引き）。光が数字に重なっていれば、ずれていません。</p></div>
+  </ol><p style="margin-top:6px">トレーニングでは、数字のまわりの円に光を出します。光は<b>頭がスマホに対してどちらへずれたか</b>（右へずれたら右）。円は3段で、内側から 緑＝3°未満・黄＝6°未満・外側の赤い帯＝6°以上（仮の線引き）。光が数字に重なっていれば、ずれていません。<br>スマホを手の中で少し傾けても、ずれには数えません（頭とスマホの位置関係だけを見ます）。</p></div>
   <h4>記録</h4>
   <button class="menuLink" id="mHist">これまでの記録</button>
   <h4>音声</h4>
@@ -439,6 +442,15 @@ function gazeOf(bs) {
   if (!bs) return null; const g = k => bs[k] || 0;
   return { x: ((g('eyeLookOutRight') - g('eyeLookInRight')) - (g('eyeLookOutLeft') - g('eyeLookInLeft'))) / 2, y: ((g('eyeLookUpLeft') + g('eyeLookUpRight')) - (g('eyeLookDownLeft') + g('eyeLookDownRight'))) / 2 };
 }
+// 頭から見たカメラ（＝すぐ下の見つめる印）の向き。行列 m（列ごと）＝顔の座標→カメラの座標。カメラの位置を顔の座標に直す：c＝−Rᵀt
+// 🔴 2026-10-23 宮崎さん「カメラの向きや、手でスマホを持つ角度で結果が全然変わる」→ ずれをこの値で取るように変えた。
+// スマホをその場で傾けても（カメラが回るだけなら）c は変わらない＝持つ角度に左右されない。頭とスマホの位置関係が変わったとき（＝目を頭の中で動かさないと印が見えなくなるとき）だけ動く。
+// cy＝頭がカメラより本人の右を向いている（＝カメラが頭の左にある）と＋、cp＝頭が上を向いている（＝カメラが下にある）と＋（頭の回旋だけなら rot・up と同じ符号）
+function camDir(m) {
+  const t = [m[12], m[13], m[14]], c = [0, 1, 2].map(i => -(m[i * 4] * t[0] + m[i * 4 + 1] * t[1] + m[i * 4 + 2] * t[2]));
+  if (!(Math.abs(c[2]) > 1e-6)) return {};
+  return { cy: Math.atan2(c[0], c[2]) * 180 / Math.PI, cp: -Math.atan2(c[1], Math.hypot(c[0], c[2])) * 180 / Math.PI };
+}
 function loop() {
   if (video.readyState >= 2 && video.currentTime !== lastT) {
     lastT = video.currentTime;
@@ -458,7 +470,7 @@ function loop() {
       // 頭から見たカメラの向き（頭の回旋・上下。元の fnt-camera-check と同じ取り方）。＋回旋＝本人の右へ、＋上下＝上を向く。
       // スマホ（カメラ）と頭がいっしょに動いていれば、この値は動かない。動いた分が「ずれ」
       let hp = null; const M = r.facialTransformationMatrixes && r.facialTransformationMatrixes[0];
-      if (M && M.data) { const m = M.data; hp = { rot: Math.atan2(m[2], m[10]) * 180 / Math.PI, up: -Math.atan2(m[6], m[10]) * 180 / Math.PI }; }
+      if (M && M.data) { const m = M.data; hp = { rot: Math.atan2(m[2], m[10]) * 180 / Math.PI, up: -Math.atan2(m[6], m[10]) * 180 / Math.PI, ...camDir(m) }; }
       if (TEST && window.__hpFake) hp = window.__hpFake(t, hp);   // 試し用（?test=1 のときだけ）
       // 目と目の間の点＝両目の外と内の端（33・133・362・263）のまん中。正面を見たときの黒目と黒目のまん中にあたる。
       // 黒目そのものは視線で動くので使わない（2026-10-18 宮崎さん「見る方向を変えるだけで点が動く」→ 鼻の頭からこの点に変えた）。右＝本人の右目の外へ向かう向き（33−263）、上＝あご→おでこ（152→10）。長さの物差し＝両目の外の端の間
@@ -584,6 +596,7 @@ const SETS = { lr: ['R', 'L'], ud: ['U', 'D'], diag: ['UR', 'DL', 'UL', 'DR'], a
 const SETN = { lr: '左右', ud: '上下', diag: '斜め', all: '全部' }, SETK = ['lr', 'ud', 'diag'];
 const TEST_DIRS = SETS.all, TEST_REPS = 3, TEST_SPEED = 'slow',   // テストのテンポ＝1往復3秒（2026-10-20 宮崎さん「テンポがちょっと早い」で 2秒→3秒。前の記録は plan.T に2秒と残っている）
   TRAIN_REPS = 5;
+const POSE_MAX = 15, POSE_WAIT = 6000;   // 度・ミリ秒：構えの確かめ（スマホが顔の正面・目の高さから POSE_MAX° 以上外れていたら直すよう出す。仮）
 const MOVE_MIN = 8;   // 度：ジャイロで測った1往復の動きがこれより小さければ「動きが小さい」と出す（仮）
 // 残りの往復を「あと3往復」→2→1と出す（2026-10-20 宮崎さん「何回やればいいのかわからない」「ジャイロで3から数え始めて、1往復したら3、2、1とカウントダウン」）
 // テストは見つめる数字のすぐ下、トレーニングは向きの字の下（真ん中は円と光があるため）
@@ -619,51 +632,31 @@ function repWatch(reps, D, tr, onRep) {
 // 円のまん中＝ずれていない。点は「スマホから見て頭がどちらへずれているか」（本人の右へずれた＝点が右）。点が数字の後ろに隠れていればOK
 let LIVE = null, SETON = false;
 function fixOn(on) { $('fix').style.display = on ? 'block' : 'none'; }
-const HUD = 300;
+const HUD_R = 85;   // トレーニングの円の半径（px）＝VC.range°。印をカメラのすぐ下に置いたので、映像の顔に重ねず、印のまわりに出す（2026-10-23）
 function hudOn(on) { $('hud').style.display = on ? 'block' : 'none'; $('hudNum').style.display = on ? 'block' : 'none';
-  for (const [id, v] of [['hudZ1', VC.ok], ['hudZ2', VC.warn]]) { const s = (HUD - 10) * v / VC.range; $(id).style.width = $(id).style.height = s + 'px'; } }
-// 目と目の間の点が、楽にしたときの位置からどれだけ動いたか → 度（目安）。両目の外の端の間＝約9cm、その点から首の回る軸まで＝約10cm として、頭を何度回した分の動きかに直す
+  for (const [id, v] of [['hudZ1', VC.ok], ['hudZ2', VC.warn]]) { const s = 2 * HUD_R * v / VC.range; $(id).style.width = $(id).style.height = s + 'px'; } }
+// 前の測り方（2026-10-18〜10-23）：目と目の間の点が、楽にしたときの位置からどれだけ動いたか → 度（目安）。両目の外の端の間＝約9cm、その点から首の回る軸まで＝約10cm として直す。
+// スマホをその場で1°傾けるだけで約3°と読んでしまう（カメラの回りを頭の回りと見なすため）ので、いまは記録（glMean）に残すだけ
 const GL_EYE_CM = 9, GL_ARM_CM = 10;
-// トレーニングの映像：楽にしたときの目と目の間の点が画面のまん中に来るよう、映像をずらして大きくする（両目の外の端の間＝画面の幅の8割まで）。
-// 🔴 ただし顔全体（頬から頬・おでこからあご）が画面に収まる倍率で止める（2026-10-18 8割まで大きくすると顔の上半分しか映らなかった）。止めた分は映像を大きくせず、円の物差しを小さくして合わせる（光は顔の点の本当の位置のまま）
-// 光はその点の本当の位置に重ねて出す（2026-10-18 宮崎さん「顔と完全に一致して画面の中心になるように」）。円の大きさも同じ物差しで決めるので、光が円のどこにあるか＝ずれの度数
-const ZOOM_EYE = 0.8, FACE_W = 0.92, FACE_H = 0.62;   // FACE_H：目の高さが画面のまん中なので、あごまで入るよう高さの6割強に収める
-let VZ = null;   // { s, tx, ty, k0, ox, oy, C }：映像の画素 → 画面の位置
-function zoomOn(b) {
-  const W = video.clientWidth, H = video.clientHeight, vw = video.videoWidth, vh = video.videoHeight; if (!vw || !vh || !b) return;
-  const k0 = Math.min(W / vw, H / vh), ox = (W - vw * k0) / 2, oy = (H - vh * k0) / 2, C = { x: W / 2, y: H / 2 };
-  const fit = Math.min(FACE_W * W / (k0 * (b.fw || b.d * 1.6)), FACE_H * H / (k0 * (b.fh || b.d * 2)));   // 顔全体が入る倍率
-  const s = clamp(Math.min(ZOOM_EYE * Math.min(W, H) / (k0 * b.d), fit), 1, 8);
-  const q = { x: ox + b.x * k0, y: oy + b.y * k0 };
-  VZ = { s, tx: s * (q.x - C.x), ty: -s * (q.y - C.y), k0, ox, oy, C };   // 左右は鏡の向きなので符号が逆
-  video.style.transform = `translate(${VZ.tx}px,${VZ.ty}px) scale(${s}) scaleX(-1)`;
-  const pxOf = deg => Math.tan(deg * Math.PI / 180) * GL_ARM_CM / GL_EYE_CM * b.d * k0 * s;   // その度数ぶん頭が回ったとき、点が画面で動く長さ
-  const R = pxOf(VC.range), hud = $('hud');
-  hud.style.width = hud.style.height = (2 * R + 10) + 'px'; hud.style.margin = `${-(R + 5)}px 0 0 ${-(R + 5)}px`;
-  for (const [id, v] of [['hudZ1', VC.ok], ['hudZ2', VC.warn]]) $(id).style.width = $(id).style.height = 2 * pxOf(v) + 'px';
-  $('hudNum').style.top = `calc(50% + ${R + 22}px)`;
-}
-function zoomOff() { VZ = null; video.style.transform = ''; const hud = $('hud'); hud.style.width = hud.style.height = hud.style.margin = ''; $('hudNum').style.top = ''; }
-const onScreen = g => { const z = VZ; const q = { x: z.ox + g.x * z.k0, y: z.oy + g.y * z.k0 }; return { x: z.C.x + z.tx - z.s * (q.x - z.C.x), y: z.C.y + z.ty + z.s * (q.y - z.C.y) }; };
+function zoomOff() { video.style.transform = ''; }
 function glOff(g, b) {
   if (!g || !b) return null; const vx = g.x - b.x, vy = g.y - b.y, k = GL_EYE_CM / b.d;
   const r = (vx * b.rx + vy * b.ry) * k, u = (vx * b.ux + vy * b.uy) * k, a = c => Math.atan(c / GL_ARM_CM) * 180 / Math.PI;
   return { dR: a(r), dU: a(u) };
 }
+function camOff(h, b) { if (!h || !b || !Number.isFinite(h.cy) || !Number.isFinite(b.cy)) return null; return { dR: h.cy - b.cy, dU: h.cp - b.cp }; }
 const colOf = m => m < VC.ok ? '#5ad18b' : m < VC.warn ? '#ffd166' : '#ff6b5a';
 const glow = c => { const n = parseInt(c.slice(1), 16), v = `${n >> 16},${n >> 8 & 255},${n & 255}`; return `radial-gradient(circle,rgba(${v},1) 0%,rgba(${v},1) 14%,rgba(${v},.45) 30%,rgba(${v},0) 70%)`; };
 function drawLive() {
   const L = LIVE, hud = $('hud'), dot = $('hudDot'), num = $('hudNum');
   if (!L.base) return;   // 楽にしたときの向きを取っている間は何も出さない
-  const o = glOff(lastGl, L.base.gl);
+  const o = camOff(lastHp, L.base);
   if (!o) { L.miss = (L.miss || 0) + 1; if (L.miss > 6) { hud.style.borderColor = '#ff6b5a'; dot.style.display = 'none'; num.textContent = '顔が外れています'; num.style.color = '#ff6b5a'; } return; }
   L.miss = 0; dot.style.display = '';
-  const { dR, dU } = o, P0 = VZ ? onScreen(lastGl) : null;
-  if (!P0) return;
-  // 読み取りの細かい揺れを軽くならす（顔からずれて見えない程度。前は 0.78 で強めにならしていた）
-  L.sx = L.sx == null ? P0.x : L.sx * 0.45 + P0.x * 0.55; L.sy = L.sy == null ? P0.y : L.sy * 0.45 + P0.y * 0.55;
-  L.m = L.m == null ? Math.hypot(dR, dU) : L.m * 0.45 + Math.hypot(dR, dU) * 0.55;
-  const m = L.m, x = L.sx - VZ.C.x, y = L.sy - VZ.C.y, c = colOf(m);
+  const { dR, dU } = o;
+  // 光＝頭がどちらへずれたか（本人の右へ＝右・上へ＝上）。円の端＝VC.range°。読み取りの細かい揺れを軽くならす
+  L.sx = L.sx == null ? dR : L.sx * 0.45 + dR * 0.55; L.sy = L.sy == null ? dU : L.sy * 0.45 + dU * 0.55;
+  const m = Math.hypot(L.sx, L.sy), k_ = HUD_R / VC.range, q = Math.min(1, (VC.range * 1.1) / Math.max(m, 1e-6)), x = L.sx * k_ * q, y = -L.sy * k_ * q, c = colOf(m);
   dot.style.transform = `translate(${x}px,${y}px)`; dot.style.background = glow(c); hud.style.borderColor = m >= VC.warn ? '#ff6b5a' : 'rgba(255,107,90,.55)';
   num.textContent = `ずれ ${m.toFixed(1)}°`; num.style.color = c;
 }
@@ -741,7 +734,7 @@ function demoVorc(c) {
 
 // ════ 1セット（1つの向き）を測る
 // 流れ：楽にして1.2秒（このときの頭の向きを「ずれ0」にする）→ 向きを声で言う → 低い音2つで構え → 高い音（真ん中）・低い音（向けた先）で reps 往復
-// ずれ＝目と目の間の点が、最初の楽にしたときの位置から動いた分（度に直した目安）。トレーニングでは円と数字でその場に出す。テストも同じ測り方
+// ずれ＝頭から見た印（カメラ）の向きが、最初の楽にしたときから変わった分（度）。トレーニングでは円と数字でその場に出す。テストも同じ測り方（2026-10-23〜。前は目と目の間の点が画面で動いた分）
 async function runSet(k, T, reps, live, first = false) {
   const my = tok;
   SETON = true; dark(true, !!live); fixOn(true); const dotT = !!live && CFG.target === 'dot'; $('fix').classList.toggle('sm', !!live); $('fix').classList.toggle('dotT', dotT); $('fix').textContent = dotT ? '' : '5'; fixRoll(!dotT); hudOn(!!live); LIVE = live ? { base: null } : null;
@@ -750,34 +743,49 @@ async function runSet(k, T, reps, live, first = false) {
   // 動かし方の説明は最初の向きだけ声で言い、2つ目からは「左へ3往復」だけ（8回くり返すと長くなるため。字はいつも出す）
   // テストは自分のペースで動かし、ジャイロで3往復を数えたら次の向きへ（2026-10-20 宮崎さん「リズムに合わせてやるのはやめよう」）。ジャイロが無い端末（パソコン等）だけ、前の音のテンポで進める
   const free = !live && gyroLive();
-  if (live) cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}`, 'thin top', DJ[k]);
-  else if (free) cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}へ ${reps}往復<small>自分のペースで・スマホといっしょに</small>`, 'thin top', first ? `${DJ[k]}へ${reps}往復。自分のペースで、スマホといっしょに動かします。${reps}往復すると、次の向きに進みます` : `${DJ[k]}へ${reps}往復`);
-  else cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}へ ${reps}往復<small>スマホといっしょに・音に合わせて（高い音で出る・低い音で戻る）</small>`, 'thin top', first ? `${DJ[k]}へ${reps}往復。スマホといっしょに、音に合わせて動かします。高い音で出て、低い音で戻ります` : `${DJ[k]}へ${reps}往復`);
-  // 楽にしたときの頭の向き
-  const t1 = performance.now(), B = [];
-  while (my === tok && performance.now() - t1 < 8000) {
-    if (lastHp && lastGl) B.push({ t: performance.now(), rot: lastHp.rot, up: lastHp.up, gl: lastGl }); else B.length = 0;
-    if (B.length && B[B.length - 1].t - B[0].t >= 1200) break;
-    await sleep(16);
+  if (live) cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}`, 'thin below', DJ[k]);
+  else if (free) cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}へ ${reps}往復<small>自分のペースで・スマホといっしょに</small>`, 'thin below', first ? `${DJ[k]}へ${reps}往復。自分のペースで、スマホといっしょに動かします。${reps}往復すると、次の向きに進みます` : `${DJ[k]}へ${reps}往復`);
+  else cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}へ ${reps}往復<small>スマホといっしょに・音に合わせて（高い音で出る・低い音で戻る）</small>`, 'thin below', first ? `${DJ[k]}へ${reps}往復。スマホといっしょに、音に合わせて動かします。高い音で出て、低い音で戻ります` : `${DJ[k]}へ${reps}往復`);
+  // 楽にしたときの頭の向き。🔴 構えの確かめ（2026-10-23）：スマホが顔の正面・目の高さに無い（顔を斜めや下から映している）と、顔の読み取りが不安定になり結果がぶれる。
+  // POSE_MAX° より外れていたら「スマホを顔の正面・目の高さに」と出して、直るのを POSE_WAIT ミリ秒まで待つ（止めっぱなしにはしない。外れたまま測ったら記録に offAxis を残す）
+  const takeBase = async () => { const t1 = performance.now(), B = [];
+    while (my === tok && performance.now() - t1 < 8000) {
+      if (lastHp && lastGl && Number.isFinite(lastHp.cy)) B.push({ t: performance.now(), rot: lastHp.rot, up: lastHp.up, cy: lastHp.cy, cp: lastHp.cp, gl: lastGl }); else B.length = 0;
+      if (B.length && B[B.length - 1].t - B[0].t >= 1200) break;
+      await sleep(16);
+    }
+    return B; };
+  let B = await takeBase(); if (my !== tok) return null;
+  const offOf = B => B.length < 5 ? 0 : Math.max(Math.abs(med(B.map(b => b.cy))), Math.abs(med(B.map(b => b.cp))));
+  let offAxis = offOf(B) > POSE_MAX;
+  if (offAxis) {
+    const tP = performance.now();
+    while (my === tok && offAxis && performance.now() - tP < (poseGaveUp ? 1500 : POSE_WAIT)) {
+      const cyN = lastHp && lastHp.cy, cpN = lastHp && lastHp.cp;
+      const hint = !Number.isFinite(cyN) ? '顔が映るように' : Math.abs(cpN) >= Math.abs(cyN) ? (cpN > 0 ? 'スマホをもう少し上（目の高さ）に' : 'スマホをもう少し下（目の高さ）に') : (cyN > 0 ? 'スマホを顔の正面へ（もう少し右に）' : 'スマホを顔の正面へ（もう少し左に）');
+      cue(`スマホを<b>顔の正面・目の高さ</b>に<small>${hint}</small>`, 'thin below', performance.now() - tP < 100 ? 'スマホを、顔の正面、目の高さに持ってください' : '');
+      B = await takeBase(); if (my !== tok) return null; offAxis = offOf(B) > POSE_MAX;
+    }
+    if (offAxis) poseGaveUp = true;   // 一度待って直らなかったら、その回の残りの向きでは長く待たない（読み取りのくせで正面でも外れて見える人がいるため）
+    cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}${live ? '' : `へ ${reps}往復`}${offAxis ? '<small>このまま測ります</small>' : ''}`, 'thin below', '');   // 直っても直らなくても、向きの字に戻す
   }
-  if (my !== tok) return null;
   if (B.length < 5) return { k, err: 'face' };
   const mg = key => med(B.map(b => b.gl[key]));
-  const base = { rot: med(B.map(b => b.rot)), up: med(B.map(b => b.up)), gl: { x: mg('x'), y: mg('y'), d: mg('d'), fw: mg('fw'), fh: mg('fh'), rx: mg('rx'), ry: mg('ry'), ux: mg('ux'), uy: mg('uy') } };
-  if (LIVE) { LIVE.base = base; zoomOn(base.gl); }
+  const base = { rot: med(B.map(b => b.rot)), up: med(B.map(b => b.up)), cy: med(B.map(b => b.cy)), cp: med(B.map(b => b.cp)), gl: { x: mg('x'), y: mg('y'), d: mg('d'), fw: mg('fw'), fh: mg('fh'), rx: mg('rx'), ry: mg('ry'), ux: mg('ux'), uy: mg('uy') } };
+  if (LIVE) LIVE.base = base;
   await voiceQuiet(live || !first ? 1800 : 9000); if (my !== tok) return null;
   if (free) {   // テスト（ジャイロあり）：始めの高い音1つ → 自分のペースで往復。1往復ごとに短い音、3往復目で終わりの音
     beep(1320, 90); rec = []; const t0 = performance.now();
     let warned = false;
     const RW = repWatch(reps, 0, false, n => beep(n > 0 ? 880 : 1320, n > 0 ? 60 : 150, n > 0 ? 0.16 : 0.22));
     while (my === tok && RW.left > 0 && performance.now() - t0 < FREE_MAX) {
-      if (!warned && RW.left === reps && performance.now() - t0 > FREE_HINT) { warned = true; cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}へ ${reps}往復<small>もう少し大きく、頭とスマホをいっしょに</small>`, 'thin top', ''); }
+      if (!warned && RW.left === reps && performance.now() - t0 > FREE_HINT) { warned = true; cue(`<span class="arw">${ARW[k]}</span> ${DJ[k]}へ ${reps}往復<small>もう少し大きく、頭とスマホをいっしょに</small>`, 'thin below', ''); }
       await sleep(30);
     }
     if (my !== tok) return null;
     await sleep(500); const rw = RW.stop(), tEnd = performance.now();
     const fr = rec; rec = null; SETON = false;
-    return { ...analyzeSet(k, fr, base, t0, T, reps, true, rw.spans, tEnd), repGy: rw.gyN, repByTime: false, free: true, dur: r1((tEnd - t0) / 1000), timeout: rw.gyN < reps };
+    return { ...analyzeSet(k, fr, base, t0, T, reps, true, rw.spans, tEnd), offAxis, repGy: rw.gyN, repByTime: false, free: true, dur: r1((tEnd - t0) / 1000), timeout: rw.gyN < reps };
   }
   for (let i = 0; i < 2; i++) { beep(520, 70, 0.18); await sleep(live ? 1000 : T * 500); if (my !== tok) return null; }   // 構え（低い音2つ）
   rec = []; const t0 = performance.now(), D = T * 1000;
@@ -801,8 +809,8 @@ async function runSet(k, T, reps, live, first = false) {
     beep(1320, 90);
   }
   await sleep(300); const rw = RW.stop();
-  const fr = rec; rec = null; LIVE = null; SETON = false; zoomOff();
-  return { ...analyzeSet(k, fr, base, t0, T, reps, true), repGy: rw.gyN, repByTime: rw.byTime };   // repGy＝ジャイロで数えた往復・repByTime＝音で数えた（実機の確かめ用）。両モードとも目と目の間の点で測る（2026-10-18 そろえた）
+  const fr = rec; rec = null; LIVE = null; SETON = false;
+  return { ...analyzeSet(k, fr, base, t0, T, reps, true), offAxis, repGy: rw.gyN, repByTime: rw.byTime };   // repGy＝ジャイロで数えた往復・repByTime＝音で数えた（実機の確かめ用）。両モードとも同じ測り方（2026-10-18 そろえた）
 }
 // 1セットの読み。本人の右・上が＋。along＝動いている向きに沿った成分（＋＝頭が先に行く＝スマホが遅れる・−＝スマホが先に行く）、cross＝動かす向きと直角にそれた分
 // spans＝自分のペースのテスト（ジャイロで数えた1往復ごとの 始め・折り返し・終わり）。あるときは音のテンポの代わりにこれで区切る
@@ -811,14 +819,15 @@ function analyzeSet(k, fr, base, t0, T, reps, byGl = false, spans = null, tEnd =
   const FR = spans != null;
   const S = fr.filter(s => s.t >= t0 && s.t < (FR ? tEnd : t0 + reps * D));
   const outOf = t => { if (!FR) return ((t - t0) / D) % 1 < 0.5; const sp = spans.find(p => t < p.e); return sp ? t < sp.turn : true; };
-  const ok = S.filter(s => !s.miss && s.hp && (!byGl || s.gl));
+  const ok = S.filter(s => !s.miss && s.hp && (!byGl || Number.isFinite(s.hp.cy)));
   const miss = S.length ? (S.length - ok.length) / S.length : 1;
   if (ok.length < 10) return { k, err: 'face', miss: r3(miss) };
   const n0 = ok.slice(0, 5).map(s => s.n), nx0 = med(n0.map(n => n.x)), ny0 = med(n0.map(n => n.y));
   const g0 = ok.filter(s => s.gz).slice(0, 5), gx0 = med(g0.map(s => s.gz.x)), gy0 = med(g0.map(s => s.gz.y));
   const E = ok.map(s => {
-    const o = byGl ? glOff(s.gl, base.gl) : { dR: s.hp.rot - base.rot, dU: s.hp.up - base.up }, dR = o.dR, dU = o.dU, sg = outOf(s.t) ? 1 : -1;
-    return { dR, dU, m: Math.hypot(dR, dU), along: (dR * ux + dU * uy) * sg, cross: dR * px_ + dU * py_, pos: Math.hypot(-(s.n.x - nx0), -(s.n.y - ny0)), gz: s.gz && Number.isFinite(gx0) ? Math.hypot(s.gz.x - gx0, s.gz.y - gy0) : NaN };
+    // byGl（名前は前のまま）＝頭から見た印の向きで取る（2026-10-23〜）。前の「目と目の間の点が画面で動いた分」は gm として記録だけ残す（前の記録と比べるため）
+    const o = byGl ? camOff(s.hp, base) : { dR: s.hp.rot - base.rot, dU: s.hp.up - base.up }, dR = o.dR, dU = o.dU, sg = outOf(s.t) ? 1 : -1, og = s.gl && base.gl ? glOff(s.gl, base.gl) : null;
+    return { dR, dU, gm: og ? Math.hypot(og.dR, og.dU) : NaN, m: Math.hypot(dR, dU), along: (dR * ux + dU * uy) * sg, cross: dR * px_ + dU * py_, pos: Math.hypot(-(s.n.x - nx0), -(s.n.y - ny0)), gz: s.gz && Number.isFinite(gx0) ? Math.hypot(s.gz.x - gx0, s.gz.y - gy0) : NaN };
   });
   const M = E.map(e => e.m), worst = E.reduce((a, b) => b.m > a.m ? b : a, E[0]);
   // ジャイロ：1往復ごとに、往復の始まりから一番遠くまで動いた角度と、一番速い回転
@@ -835,7 +844,7 @@ function analyzeSet(k, fr, base, t0, T, reps, byGl = false, spans = null, tEnd =
   return { k, n: E.length, miss: r3(miss), mean: r1(mean(M)), p95: r1(qtl(M, 0.95)), inOk: r3(M.filter(m => m < VC.ok).length / M.length),
     along: r1(mean(E.map(e => e.along))), cross: r1(cr), crossDir: Math.abs(cr) >= 1 ? dirOf(px_ * cr, py_ * cr) : null,
     worstDir: worst.m >= 1 ? dirOf(worst.dR, worst.dU) : null, pos: r3(mean(E.map(e => e.pos))), gaze: r3(mean(E.map(e => e.gz).filter(Number.isFinite))),
-    move, speed, by: byGl ? 'glabella' : 'headpose', base: { rot: r1(base.rot), up: r1(base.up) } };
+    move, speed, glMean: r1(mean(E.map(e => e.gm).filter(Number.isFinite))), by: byGl ? 'camdir' : 'headpose', base: { rot: r1(base.rot), up: r1(base.up) } };
 }
 
 // ════ トレーニング・テストの流れ
@@ -849,11 +858,11 @@ CFG.reps = String(Math.min(REPS_MAX, Math.max(REPS_MIN, Math.round(+CFG.reps) ||
 const sameDirs = (a, b) => a.length === b.length && a.every(k => b.includes(k));
 const presetOf = () => ['all', ...SETK].find(k => sameDirs(CFG.dirs, SETS[k])) || null;
 const setsName = () => { const p = presetOf(); return p ? SETN[p] : CFG.dirs.map(k => DJ[k]).join('・'); };
-let MODE = 'train', NSTEP = 2;
+let MODE = 'train', NSTEP = 2, poseGaveUp = false;
 function planOf(mode) { return mode === 'test' ? { dirs: TEST_DIRS, T: SPEEDS[TEST_SPEED][0], speed: TEST_SPEED, reps: TEST_REPS } : { dirs: CFG.dirs.slice(), T: SPEEDS[CFG.speed][0], speed: CFG.speed, reps: +CFG.reps || TRAIN_REPS }; }
-const INTRO_TRAIN_DOT = '目は<b>真ん中の点</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>光は目と目の間の位置です。緑の円の中にあればOK、外の赤い帯に行くほど大きくずれています。高い音で出て、いち、に、さんと数える声に合わせて向け、同じだけ数えて戻ります。残りの往復は向きの字の下に「あと◯往復」と出ます</small>';
-const INTRO_TRAIN = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>光は目と目の間の位置です。緑の円の中にあればOK、外の赤い帯に行くほど大きくずれています。高い音で出て、いち、に、さんと数える声に合わせて向け、同じだけ数えて戻ります。残りの往復は向きの字の下に「あと◯往復」と出ます</small>';
-const INTRO_TEST = '目は<b>真ん中の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>8つの向きを、1つずつ3往復。向きは声と字で伝えます。高い音が鳴ったら、自分のペースで動かします。残りの回数は数字の下に「あと3往復」と出て、1往復ごとに減ります。3往復すると次の向きに進みます。結果は最後に出ます</small>';
+const INTRO_TRAIN_DOT = 'スマホは顔の正面・目の高さに<br>目は<b>カメラのすぐ下の点</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>頭がずれた向きに光が動きます。緑の円の中にあればOK、外の赤い帯に行くほど大きくずれています。高い音で出て、いち、に、さんと数える声に合わせて向け、同じだけ数えて戻ります。残りの往復は向きの字の下に「あと◯往復」と出ます</small>';
+const INTRO_TRAIN = 'スマホは顔の正面・目の高さに<br>目は<b>カメラのすぐ下の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>頭がずれた向きに光が動きます。緑の円の中にあればOK、外の赤い帯に行くほど大きくずれています。高い音で出て、いち、に、さんと数える声に合わせて向け、同じだけ数えて戻ります。残りの往復は向きの字の下に「あと◯往復」と出ます</small>';
+const INTRO_TEST = 'スマホは顔の正面・目の高さに<br>目は<b>カメラのすぐ下の数字</b>を見たまま<br>頭とスマホを<b>いっしょに</b><small>8つの向きを、1つずつ3往復。向きは声と字で伝えます。高い音が鳴ったら、自分のペースで動かします。残りの回数は数字の下に「あと3往復」と出て、1往復ごとに減ります。3往復すると次の向きに進みます。結果は最後に出ます</small>';
 const INTRO_NOW = () => MODE === 'test' ? INTRO_TEST : CFG.target === 'dot' ? INTRO_TRAIN_DOT : INTRO_TRAIN;
 function stepIntro() {
   const P_ = planOf(MODE);
@@ -863,7 +872,7 @@ function stepIntro() {
   btn('始める', () => runSession(P_));
 }
 async function runSession(P_) {
-  const my = tok; clearBtns(); audioStart(); countLoad();
+  const my = tok; clearBtns(); audioStart(); countLoad(); poseGaveUp = false;
   await voiceQuiet(); if (my !== tok) return;
   let w0 = performance.now(); while (!last && performance.now() - w0 < 5000) await sleep(100);
   if (!last) return fail(stepIntro, '顔が見つかりませんでした');
@@ -934,7 +943,7 @@ function radarSVG(S) {
 const alongWord = a => !Number.isFinite(a) || Math.abs(a) < 1 ? '' : a > 0 ? `頭が先に行く ${Math.abs(a)}°` : `頭が遅れる ${Math.abs(a)}°`;
 function setRow(s) {
   if (s.err) return `<div class="dRow" style="border-left-color:#555"><b>${ARW[s.k]} ${DJ[s.k]}へ</b>　<span style="color:#ff8a65">顔が外れて読めず</span></div>`;
-  const ex = [s.free ? `${s.repGy}往復・${s.dur}秒${s.timeout ? '（数えきれず）' : ''}` : '', s.move != null ? `動かした角度 約${s.move}°` : '', s.miss > 0.05 ? `顔が外れた ${Math.round(s.miss * 100)}%` : ''].filter(Boolean).join('・');
+  const ex = [s.free ? `${s.repGy}往復・${s.dur}秒${s.timeout ? '（数えきれず）' : ''}` : '', s.move != null ? `動かした角度 約${s.move}°` : '', s.miss > 0.05 ? `顔が外れた ${Math.round(s.miss * 100)}%` : '', s.offAxis ? 'スマホが顔の正面から外れたまま測った' : ''].filter(Boolean).join('・');
   const w = s.mean >= VC.ok ? howWords(s) : howWords(s).filter(t => /動きが小さめ/.test(t));
   return `<div class="dRow" style="border-left-color:${colOf(s.mean)}"><b>${ARW[s.k]} ${DJ[s.k]}へ</b>　<span style="color:${colOf(s.mean)}">${lvl(s.mean)}</span>　<span class="small">平均 ${s.mean}°・大きいとき ${s.p95}°</span>${w.length ? `<ul>${w.map(t => `<li>${t}</li>`).join('')}</ul>` : ''}${ex ? `<span class="small">${ex}</span>` : ''}</div>`;
 }
@@ -945,11 +954,11 @@ function runHTML(r) {
   return `<p class="resHead">${r.mode === 'test' ? 'テスト' : 'トレーニング'}（${P_.free ? `自分のペース・${P_.reps}往復` : `${(SPEEDS[P_.speed] || ['', ''])[1]}・1往復${P_.T}秒×${P_.reps}`}）</p>
     <div class="topBox"><div class="topH">${top.length ? 'いちばんずれていた所' : '目立つずれはありませんでした'}</div>
     ${top.length ? top.map((t, i) => `<div class="topItem" style="border-left-color:${t.c}"><b>${i + 1}. ${t.h}</b>${t.n ? `<span class="small">${t.n}</span>` : ''}${t.w.length ? `<ul>${t.w.map(x => `<li>${x}</li>`).join('')}</ul>` : ''}</div>`).join('') : `<p class="small">どの向きも、ずれの平均が ${VC.ok}° 未満でした。</p>`}</div>
-    <div class="res"><b>数字の読み方</b><br><span class="small">頭とスマホがぴったりいっしょに動けば、顔は画面の真ん中から動きません（0°）。数字は、顔が真ん中から外れた大きさを「頭をスマホより何度よけいに回した（足りなかった）か」に直した目安です。<br><span style="color:#5ad18b">● ${VC.ok}°未満＝ほぼずれていない</span>　<span style="color:#ffd166">● ${VC.ok}〜${VC.warn}°＝少しずれた</span>　<span style="color:#ff6b5a">● ${VC.warn}°以上＝大きくずれた</span>（線引きは仮）</span></div>
+    <div class="res"><b>数字の読み方</b><br><span class="small">頭とスマホがぴったりいっしょに動けば、目を動かさなくても数字が見え続けます（0°）。数字は、頭がスマホより何度よけいに回った（足りなかった）か＝そのぶん目を動かさないと数字が見えなかった角度です。<br><span style="color:#5ad18b">● ${VC.ok}°未満＝ほぼずれていない</span>　<span style="color:#ffd166">● ${VC.ok}〜${VC.warn}°＝少しずれた</span>　<span style="color:#ff6b5a">● ${VC.warn}°以上＝大きくずれた</span>（線引きは仮）</span></div>
     <div class="res">全体のずれの平均 <b>${S.mean ?? '—'}°</b>・ずれが ${VC.ok}° 未満だった時間 <b>${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}</b>
     ${radarSVG(r.sets)}<p class="small" style="text-align:center;margin:0">線が長い向きほど、その向きに動かしたときのずれが大きい</p></div>
     <p class="resHead" style="font-size:16px">向きごとの結果</p>${sets.map(setRow).join('')}
-    <p class="small" style="margin-top:8px">「大きいとき」＝ずれが大きかった方から5%の所。測り方：目と目の間の点が、楽にしたときの位置から動いた分（両目の外の端の間≒9cm、首の回る軸まで≒10cm として度に直す）。トレーニングと同じ測り方。どこからを問題とするかはまだ決めていません${S.lost.length ? `<br><span style="color:#ff8a65">※顔が外れて読めなかった向き：${S.lost.map(k => DJ[k]).join('・')}</span>` : ''}${S.small.length ? `<br><span style="color:#ff8a65">※動きが小さかった向き（${MOVE_MIN}° 未満）：${S.small.map(k => DJ[k]).join('・')}。動かさなければずれも出ないので、楽に向けられる所まで動かしてください</span>` : ''}</p>`;
+    <p class="small" style="margin-top:8px">「大きいとき」＝ずれが大きかった方から5%の所。測り方：${r.sets.some(s => s.by === 'camdir') ? '頭から見た数字（カメラ）の向きが、楽にしたときから変わった分。スマホを手の中で傾けただけでは数えない' : '目と目の間の点が、楽にしたときの位置から動いた分（2026-10-23 より前の測り方。スマホの傾きも大きく数えていたので、いまの測り方の数字とは比べられない）'}。トレーニングと同じ測り方。どこからを問題とするかはまだ決めていません${S.lost.length ? `<br><span style="color:#ff8a65">※顔が外れて読めなかった向き：${S.lost.map(k => DJ[k]).join('・')}</span>` : ''}${S.small.length ? `<br><span style="color:#ff8a65">※動きが小さかった向き（${MOVE_MIN}° 未満）：${S.small.map(k => DJ[k]).join('・')}。動かさなければずれも出ないので、楽に向けられる所まで動かしてください</span>` : ''}</p>`;
 }
 function runText(r) {
   if (!r.sets) return '';
