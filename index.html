@@ -211,7 +211,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
       <canvas width="440" height="340" id="homeDemo" style="display:block;width:100%;max-width:300px;aspect-ratio:440/340;margin:6px auto 0;background:#0f1115;border-radius:12px"></canvas>
       <div class="card">
         <h3>トレーニング<em>TRAINING</em></h3>
-        <p>自分の顔を映したまま、ずれを<b>ふんわりした光</b>と数字で見ながら練習します</p>
+        <p>自分の顔を映したまま、ずれを<b>ふんわりした光</b>と数字で見ながら練習します。終わると、<b>どの向きにどれくらいずれたか</b>を出して記録に残します（テストを兼ねます）</p>
         <div class="opt">向き <i>（1つずつオン・オフ。いくつでも）</i></div>
         <div class="chips" id="dirPreset"><button class="chip" data-v="all">全部</button><button class="chip" data-v="lr">左右</button><button class="chip" data-v="ud">上下</button><button class="chip" data-v="diag">斜め</button></div>
         <div class="dirGrid" id="dirGrid"><button class="chip" data-v="UL">↖<br>左上</button><button class="chip" data-v="U">↑<br>上</button><button class="chip" data-v="UR">↗<br>右上</button><button class="chip" data-v="L">←<br>左</button><span class="dirN" id="dirN"></span><button class="chip" data-v="R">→<br>右</button><button class="chip" data-v="DL">↙<br>左下</button><button class="chip" data-v="D">↓<br>下</button><button class="chip" data-v="DR">↘<br>右下</button></div>
@@ -224,11 +224,6 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
         <div class="opt">光の動き</div>
         <div class="chips" data-cfg="level"><button class="chip" data-v="easy">ふつう<br><small>大きく・ゆっくり</small></button><button class="chip" data-v="hard">ハード<br><small>小さく・すばやく</small></button></div>
         <button class="btn" data-mode="train" disabled style="margin-top:12px">トレーニングを始める</button>
-      </div>
-      <div class="card">
-        <h3>テスト<em>ASSESSMENT</em></h3>
-        <p>8つの向きを3往復ずつ（ふつうの速さ）。途中は何も出さず、<b>終わってから</b>どの向きにどれくらいずれたかを出します</p>
-        <button class="btn" data-mode="test" disabled>テストを始める</button>
       </div>
       <button class="btn ghost" id="bHomeHist">これまでの記録を見る</button>
       <div class="notes">
@@ -251,7 +246,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
 
     <section class="screen hide" id="sHist">
       <h2>これまでの記録</h2>
-      <p class="desc">この端末に残っている記録です（新しい順・最新300件）。押すと結果を開きます。テストは、向きごとのずれの変化を表で比べられます。</p>
+      <p class="desc">この端末に残っている記録です（新しい順・最新300件）。押すと結果を開きます。向きごとのずれの変化を表で比べられます。</p>
       <div id="histList"></div>
       <button class="btn ghost" id="bHistCopy">全部の記録をテキストでコピー</button>
       <button class="btn ghost" id="bHistHome">トップに戻る</button>
@@ -268,7 +263,7 @@ footer{ padding:18px 20px calc(18px + env(safe-area-inset-bottom)); text-align:c
     <li>スマホを<b>顔の前</b>に持つ（顔全体が映る距離・腕は軽く曲げる）</li>
     <li>スマホは<b>顔の正面・目の高さ</b>に縦に持つ（ずれていると始めに「スマホを顔の正面・目の高さに」と出ます）</li>
     <li>目は<b>カメラのすぐ下の数字</b>から離さない</li>
-    <li>「みぎ」などの声のあと、<b>頭とスマホをいっしょに</b>往復。トレーニングは<b>「いち、に、さん…」の声</b>で1秒ずつ数えます（選んだ秒数で向けた先に着き、同じ秒数で戻る）。テストは<b>高い音＝真ん中・低い音＝向けた先</b></li>
+    <li>「みぎ」などの声のあと、<b>頭とスマホをいっしょに</b>往復。トレーニングは<b>「いち、に、さん…」の声</b>で1秒ずつ数えます（選んだ秒数で向けた先に着き、同じ秒数で戻る）</li>
     <li>顔がカメラの真ん中から動かないように。スマホだけ・頭だけが先に行くと「ずれ」になります</li>
   </ol><p style="margin-top:6px">トレーニングでは、数字のまわりの円に光を出します。光は<b>頭がスマホに対してどちらへずれたか</b>（右へずれたら右）。円は3段で、内側から 緑＝3°未満・黄＝6°未満・外側の赤い帯＝6°以上（仮の線引き）。光が数字に重なっていれば、ずれていません。<br>「光の動き」は、ふつう＝大きくぼやけた光がゆっくり追う／ハード＝小さな光が細かい揺れまですぐ追う。緑・黄の線引きはどちらも同じです。<br>スマホを手の中で少し傾けても、ずれには数えません（頭とスマホの位置関係だけを見ます）。</p></div>
   <h4>記録</h4>
@@ -978,7 +973,7 @@ function runHTML(r) {
     <div class="res">全体のずれの平均 <b>${S.mean ?? '—'}°</b>・ずれが ${VC.ok}° 未満だった時間 <b>${S.inOk != null ? Math.round(S.inOk * 100) + '%' : '—'}</b>
     ${radarSVG(r.sets)}<p class="small" style="text-align:center;margin:0">線が長い向きほど、その向きに動かしたときのずれが大きい</p></div>
     <p class="resHead" style="font-size:16px">向きごとの結果</p>${sets.map(setRow).join('')}
-    <p class="small" style="margin-top:8px">「大きいとき」＝ずれが大きかった方から5%の所。測り方：${r.sets.some(s => s.by === 'camdir') ? '頭から見た数字（カメラ）の向きが、楽にしたときから変わった分。スマホを手の中で傾けただけでは数えない' : '目と目の間の点が、楽にしたときの位置から動いた分（2026-10-23 より前の測り方。スマホの傾きも大きく数えていたので、いまの測り方の数字とは比べられない）'}。${r.sets.some(s => s.level === 'hard') ? '基準：ハード（細かい揺れもそのまま数える）' : r.sets.some(s => s.level === 'easy') ? `基準：ふつう（読み取りの揺れを${LEVELS.easy.tau}秒でならし、${LEVELS.easy.dead}°未満は数えない。2026-10-23 からテストもこれ）` : 'トレーニングと同じ測り方'}。どこからを問題とするかはまだ決めていません${S.lost.length ? `<br><span style="color:#ff8a65">※顔が外れて読めなかった向き：${S.lost.map(k => DJ[k]).join('・')}</span>` : ''}${S.small.length ? `<br><span style="color:#ff8a65">※動きが小さかった向き（${MOVE_MIN}° 未満）：${S.small.map(k => DJ[k]).join('・')}。動かさなければずれも出ないので、楽に向けられる所まで動かしてください</span>` : ''}</p>`;
+    <p class="small" style="margin-top:8px">「大きいとき」＝ずれが大きかった方から5%の所。測り方：${r.sets.some(s => s.by === 'camdir') ? '頭から見た数字（カメラ）の向きが、楽にしたときから変わった分。スマホを手の中で傾けただけでは数えない' : '目と目の間の点が、楽にしたときの位置から動いた分（2026-10-23 より前の測り方。スマホの傾きも大きく数えていたので、いまの測り方の数字とは比べられない）'}。${r.sets.some(s => s.level === 'hard') ? '基準：ハード（細かい揺れもそのまま数える）' : r.sets.some(s => s.level === 'easy') ? `基準：ふつう（読み取りの揺れを${LEVELS.easy.tau}秒でならし、${LEVELS.easy.dead}°未満は数えない）` : 'トレーニングと同じ測り方'}。どこからを問題とするかはまだ決めていません${S.lost.length ? `<br><span style="color:#ff8a65">※顔が外れて読めなかった向き：${S.lost.map(k => DJ[k]).join('・')}</span>` : ''}${S.small.length ? `<br><span style="color:#ff8a65">※動きが小さかった向き（${MOVE_MIN}° 未満）：${S.small.map(k => DJ[k]).join('・')}。動かさなければずれも出ないので、楽に向けられる所まで動かしてください</span>` : ''}</p>`;
 }
 function runText(r) {
   if (!r.sets) return '';
@@ -1000,7 +995,7 @@ function showEnd(r, fresh) {
   $('endWhen').textContent = when(r.started);
   $('endList').innerHTML = runHTML(r);
   $('bCopy').textContent = '記録をテキストでコピー';
-  $('bAgain').textContent = r.mode === 'test' ? 'もう一度テストする' : 'もう一度トレーニングする';
+  $('bAgain').textContent = 'もう一度トレーニングする';
 }
 function finish() {
   tok++; RUN.ended = new Date().toISOString(); RUN.delegate = delegate; RUN.gyro = GY.on && GY.n > 0;
@@ -1008,15 +1003,15 @@ function finish() {
 }
 async function copyText(t, b, label) { let ok = false; try { await navigator.clipboard.writeText(t); ok = true; } catch (e) { const a = $('copyArea'); a.value = t; a.select(); try { ok = document.execCommand('copy'); } catch (_) {} } toast(ok ? 'コピーしました' : 'コピーできませんでした'); if (b && label) b.textContent = ok ? 'コピーしました' : label; }
 $('bCopy').onclick = () => VIEW && copyText(runText(VIEW), $('bCopy'), '記録をテキストでコピー');
-$('bAgain').onclick = () => begin(VIEW && VIEW.mode === 'test' ? 'test' : 'train');
+$('bAgain').onclick = () => begin('train');   // テストは 2026-10-23 にやめた（宮崎さん「トレーニングがテストを兼ねているから、それだけでいい」）。前のテストの記録から押してもトレーニング
 $('bHome').onclick = $('bHistHome').onclick = () => goHome();
 $('bEndHist').onclick = $('bHomeHist').onclick = () => showHist();
 $('bHistCopy').onclick = () => { const a = runsAll().slice().reverse(); copyText(a.length ? a.map(runText).join('\n\n') : '記録はまだありません', null); };
-// テストの向きごとの変化（新しい順・最新20回）。前後で比べるための表
+// 向きごとの変化（新しい順・最新20回。トレーニングと前のテストの両方）。前後で比べるための表。その回にやらなかった向きは —
 function trendHTML(a) {
-  const T = a.filter(r => r.mode === 'test' && r.sets).slice(0, 20); if (!T.length) return '';
+  const T = a.filter(r => r.sets).slice(0, 20); if (!T.length) return '';
   const cell = (r, k) => { const s = r.sets.find(q => q.k === k); return !s ? '<td>—</td>' : s.err ? '<td class="small">✕</td>' : `<td style="color:${colOf(s.mean)}">${r0(s.mean)}</td>`; };
-  return `<p class="resHead" style="font-size:16px">テストの向きごとの変化（°）</p><div class="trendWrap"><table class="trend"><tr><th>日</th>${TEST_DIRS.map(k => `<th>${ARW[k]}<br>${DJ[k]}</th>`).join('')}</tr>${T.map(r => `<tr><td class="small">${new Date(r.started).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })}</td>${TEST_DIRS.map(k => cell(r, k)).join('')}</tr>`).join('')}</table></div><p class="small">数字＝その向きのずれの平均。色は結果の画面と同じ（緑＝${VC.ok}°未満・黄＝${VC.warn}°未満・赤＝それ以上）</p>`;
+  return `<p class="resHead" style="font-size:16px">向きごとの変化（°）</p><div class="trendWrap"><table class="trend"><tr><th>日</th>${TEST_DIRS.map(k => `<th>${ARW[k]}<br>${DJ[k]}</th>`).join('')}</tr>${T.map(r => `<tr><td class="small">${new Date(r.started).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })}</td>${TEST_DIRS.map(k => cell(r, k)).join('')}</tr>`).join('')}</table></div><p class="small">数字＝その向きのずれの平均。色は結果の画面と同じ（緑＝${VC.ok}°未満・黄＝${VC.warn}°未満・赤＝それ以上）</p>`;
 }
 function showHist() {
   const a = runsAll().slice().reverse();
